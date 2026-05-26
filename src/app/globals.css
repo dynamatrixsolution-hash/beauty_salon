@@ -145,3 +145,12 @@ body {
 .gmap-canvas iframe {
   filter: grayscale(10%) contrast(102%) sepia(5%);
 }
+
+/* Scrollbar hide utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}

@@ -16,6 +16,7 @@ import {
   X,
   Sparkles,
   Loader2,
+  Brain,
 } from 'lucide-react';
 import SessionProvider from '@/components/providers/SessionProvider';
 
@@ -26,6 +27,7 @@ const SIDEBAR_ITEMS = [
   { href: '/admin/services', label: 'Services', icon: Scissors },
   { href: '/admin/products', label: 'Products', icon: Package },
   { href: '/admin/blog', label: 'Blog Posts', icon: FileText },
+  { href: '/admin/concierge', label: 'AI Concierge', icon: Brain },
 ];
 
 function AdminLayoutInner({ children }: { children: React.ReactNode }) {
