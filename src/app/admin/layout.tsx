@@ -17,6 +17,7 @@ import {
   Sparkles,
   Loader2,
   Brain,
+  Mail,
 } from 'lucide-react';
 import SessionProvider from '@/components/providers/SessionProvider';
 
@@ -24,6 +25,7 @@ const SIDEBAR_ITEMS = [
   { href: '/admin', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/admin/appointments', label: 'Appointments', icon: CalendarCheck },
   { href: '/admin/inquiries', label: 'Inquiries', icon: MessageSquare },
+  { href: '/admin/subscribers', label: 'Subscribers', icon: Mail },
   { href: '/admin/services', label: 'Services', icon: Scissors },
   { href: '/admin/products', label: 'Products', icon: Package },
   { href: '/admin/blog', label: 'Blog Posts', icon: FileText },
@@ -94,9 +96,8 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
 
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-brand-charcoal border-r border-white/[0.06] flex flex-col transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:z-auto ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-brand-charcoal border-r border-white/[0.06] flex flex-col transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:z-auto ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
       >
         {/* Logo */}
         <div className="flex items-center gap-3 px-6 py-6 border-b border-white/[0.06]">
@@ -128,18 +129,16 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
                 <li key={item.href}>
                   <Link
                     href={item.href}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group ${
-                      isActive
+                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group ${isActive
                         ? 'bg-brand-rosegold/15 text-brand-rosegold border border-brand-rosegold/20'
                         : 'text-white/60 hover:text-white hover:bg-white/[0.04] border border-transparent'
-                    }`}
+                      }`}
                   >
                     <Icon
-                      className={`w-[18px] h-[18px] transition-colors ${
-                        isActive
+                      className={`w-[18px] h-[18px] transition-colors ${isActive
                           ? 'text-brand-rosegold'
                           : 'text-white/40 group-hover:text-white/80'
-                      }`}
+                        }`}
                     />
                     {item.label}
                   </Link>
@@ -175,9 +174,13 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
       </aside>
 
       {/* Main content area */}
-      <div className="flex-1 flex flex-col min-h-screen lg:min-w-0">
+      <div className="flex-1 flex flex-col min-h-screen lg:min-w-0 relative overflow-hidden">
+        {/* Soft elegant ambient glowing backgrounds to premium-ize the visual design */}
+        <div className="absolute top-[-20%] left-[20%] w-[500px] h-[500px] rounded-full bg-brand-rosegold/5 blur-[120px] pointer-events-none z-0" />
+        <div className="absolute bottom-[-10%] right-[10%] w-[400px] h-[400px] rounded-full bg-brand-gold/3 blur-[100px] pointer-events-none z-0" />
+
         {/* Top bar */}
-        <header className="sticky top-0 z-30 bg-brand-charcoal-dark/80 backdrop-blur-xl border-b border-white/[0.06]">
+        <header className="sticky top-0 z-30 bg-brand-charcoal-dark/80 backdrop-blur-xl border-b border-white/[0.06] relative z-10">
           <div className="flex items-center justify-between h-16 px-4 sm:px-6 lg:px-8">
             {/* Mobile menu button */}
             <button
@@ -194,7 +197,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
 
             {/* Page title from pathname */}
             <div className="hidden lg:block">
-              <h1 className="text-lg font-serif font-semibold text-white tracking-wide">
+              <h1 className="text-lg font-serif font-semibold bg-gradient-to-r from-white via-white to-brand-rosegold bg-clip-text text-transparent tracking-wide">
                 {SIDEBAR_ITEMS.find((item) =>
                   item.href === '/admin'
                     ? pathname === '/admin'
@@ -217,7 +220,7 @@ function AdminLayoutInner({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Scrollable content */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 relative z-10">
           {children}
         </main>
       </div>

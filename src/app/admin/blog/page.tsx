@@ -15,6 +15,7 @@ import {
   Save,
   ExternalLink,
 } from 'lucide-react';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 
 const CATEGORIES = ['Skincare', 'Haircare', 'Bridal', 'Wellness', 'Trends'];
 
@@ -37,6 +38,9 @@ export default function AdminBlogPage() {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
+  
+  // Custom Confirmation Dialog State
+  const [postToDelete, setPostToDelete] = useState<string | null>(null);
 
   const fetchPosts = async () => {
     try {
@@ -107,7 +111,6 @@ export default function AdminBlogPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this post?')) return;
     setDeleting(id);
 
     try {
@@ -115,6 +118,7 @@ export default function AdminBlogPage() {
       const data = await res.json();
       if (data.success) {
         setPosts((prev) => prev.filter((p) => p.id !== id));
+        setPostToDelete(null); // Close the confirmation modal
       }
     } catch (error) {
       console.error('Failed to delete blog post:', error);
@@ -243,7 +247,7 @@ export default function AdminBlogPage() {
                     <Pencil className="w-4 h-4" />
                   </button>
                   <button
-                    onClick={() => handleDelete(post.id)}
+                    onClick={() => setPostToDelete(post.id)}
                     disabled={deleting === post.id}
                     className="p-2 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 transition-colors cursor-pointer disabled:opacity-50"
                     title="Delete"
@@ -414,6 +418,18 @@ export default function AdminBlogPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Dynamic Confirmation Dialog Modal */}
+      <ConfirmModal
+        isOpen={postToDelete !== null}
+        title="Delete Blog Post?"
+        message="Are you sure you want to delete this blog post? This action cannot be undone."
+        isLoading={deleting === postToDelete && deleting !== null}
+        onConfirm={() => {
+          if (postToDelete) handleDelete(postToDelete);
+        }}
+        onCancel={() => setPostToDelete(null)}
+      />
     </div>
   );
 }

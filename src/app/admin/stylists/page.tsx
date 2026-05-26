@@ -4,67 +4,56 @@ import React, { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Scissors,
+  Users,
   Plus,
   Pencil,
   Trash2,
   X,
   Loader2,
   Star,
-  Clock,
+  Award,
   Save,
+  Globe,
 } from 'lucide-react';
 import ConfirmModal from '@/components/ui/ConfirmModal';
 
-const CATEGORIES = [
-  'hair',
-  'facial',
-  'bridal',
-  'nails',
-  'spa',
-  'skin',
-  'eyebrow-lash',
-  'massage',
-];
-
 const emptyForm = {
-  title: '',
-  description: '',
-  duration: '',
-  pricing: '',
-  category: 'hair',
-  benefits: '',
+  name: '',
+  specialization: '',
+  experience: '',
+  certifications: '',
+  socials: '',
   image: '',
   featured: false,
 };
 
-export default function AdminServicesPage() {
+export default function AdminStylistsPage() {
   const { data: session } = useSession();
-  const [services, setServices] = useState<any[]>([]);
+  const [stylists, setStylists] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
-
+  
   // Custom Confirmation Dialog State
-  const [serviceToDelete, setServiceToDelete] = useState<string | null>(null);
+  const [stylistToDelete, setStylistToDelete] = useState<string | null>(null);
 
-  const fetchServices = async () => {
+  const fetchStylists = async () => {
     try {
-      const res = await fetch('/api/services');
+      const res = await fetch('/api/stylists');
       const data = await res.json();
-      if (data.success) setServices(data.data);
+      if (data.success) setStylists(data.data);
     } catch (error) {
-      console.error('Failed to fetch services:', error);
+      console.error('Failed to fetch stylists:', error);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (session) fetchServices();
+    if (session) fetchStylists();
   }, [session]);
 
   const openNewForm = () => {
@@ -73,18 +62,17 @@ export default function AdminServicesPage() {
     setShowForm(true);
   };
 
-  const openEditForm = (service: any) => {
+  const openEditForm = (stylist: any) => {
     setForm({
-      title: service.title,
-      description: service.description,
-      duration: String(service.duration),
-      pricing: String(service.pricing),
-      category: service.category,
-      benefits: service.benefits || '',
-      image: service.image,
-      featured: service.featured,
+      name: stylist.name,
+      specialization: stylist.specialization,
+      experience: stylist.experience,
+      certifications: stylist.certifications || '',
+      socials: stylist.socials || '',
+      image: stylist.image,
+      featured: stylist.featured,
     });
-    setEditingId(service.id);
+    setEditingId(stylist.id);
     setShowForm(true);
   };
 
@@ -98,7 +86,7 @@ export default function AdminServicesPage() {
         ? { id: editingId, ...form }
         : form;
 
-      const res = await fetch('/api/services', {
+      const res = await fetch('/api/stylists', {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -106,15 +94,15 @@ export default function AdminServicesPage() {
 
       const data = await res.json();
       if (data.success) {
-        await fetchServices();
+        await fetchStylists();
         setShowForm(false);
         setEditingId(null);
         setForm(emptyForm);
       } else {
-        alert(data.error || 'Failed to save service');
+        alert(data.error || 'Failed to save stylist');
       }
     } catch (error) {
-      console.error('Failed to save service:', error);
+      console.error('Failed to save stylist:', error);
     } finally {
       setSaving(false);
     }
@@ -124,14 +112,14 @@ export default function AdminServicesPage() {
     setDeleting(id);
 
     try {
-      const res = await fetch(`/api/services?id=${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/stylists?id=${id}`, { method: 'DELETE' });
       const data = await res.json();
       if (data.success) {
-        setServices((prev) => prev.filter((s) => s.id !== id));
-        setServiceToDelete(null); // Close the confirmation modal
+        setStylists((prev) => prev.filter((s) => s.id !== id));
+        setStylistToDelete(null); // Close the confirmation modal
       }
     } catch (error) {
-      console.error('Failed to delete service:', error);
+      console.error('Failed to delete stylist:', error);
     } finally {
       setDeleting(null);
     }
@@ -146,7 +134,7 @@ export default function AdminServicesPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 font-sans">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 15 }}
@@ -156,10 +144,10 @@ export default function AdminServicesPage() {
       >
         <div>
           <h1 className="font-serif text-2xl font-semibold text-white">
-            Services
+            Team Specialists
           </h1>
-          <p className="text-white/40 text-sm mt-1 font-sans">
-            Manage salon service menu
+          <p className="text-white/40 text-sm mt-1">
+            Manage salon specialists, stylists and therapists
           </p>
         </div>
         <button
@@ -167,80 +155,94 @@ export default function AdminServicesPage() {
           className="flex items-center gap-2 bg-brand-rosegold text-brand-charcoal-dark px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-brand-rosegold-dark transition-colors cursor-pointer"
         >
           <Plus className="w-4 h-4" />
-          Add Service
+          Add Team Member
         </button>
       </motion.div>
 
-      {/* Services List */}
-      {services.length === 0 ? (
+      {/* Stylists Grid */}
+      {stylists.length === 0 ? (
         <div className="text-center py-16">
-          <Scissors className="w-12 h-12 text-white/10 mx-auto mb-4" />
-          <p className="text-white/30 font-sans">No services yet</p>
+          <Users className="w-12 h-12 text-white/10 mx-auto mb-4" />
+          <p className="text-white/30">No team members yet</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {services.map((service, idx) => (
+          {stylists.map((stylist, idx) => (
             <motion.div
-              key={service.id}
+              key={stylist.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: idx * 0.05 }}
               className="bg-white/[0.03] rounded-2xl border border-white/[0.06] overflow-hidden group flex flex-col justify-between"
             >
               <div>
-                <div className="relative aspect-video overflow-hidden bg-white/[0.02]">
+                {/* Image */}
+                <div className="relative aspect-[3/2] overflow-hidden bg-white/[0.02]">
                   <img
-                    src={service.image}
-                    alt={service.title}
+                    src={stylist.image}
+                    alt={stylist.name}
                     className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
                   />
-                  {service.featured && (
+                  {stylist.featured && (
                     <div className="absolute top-3 left-3 flex items-center gap-1 bg-brand-gold/90 text-brand-charcoal-dark text-[9px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full">
                       <Star className="w-3 h-3" />
                       Featured
                     </div>
                   )}
-                  <div className="absolute top-3 right-3 bg-white/10 backdrop-blur-sm text-white text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full">
-                    {service.category}
-                  </div>
                 </div>
 
-                <div className="p-4 space-y-3">
+                {/* Info */}
+                <div className="p-5 space-y-3">
                   <div>
                     <h3 className="text-white font-serif text-base font-semibold">
-                      {service.title}
+                      {stylist.name}
                     </h3>
-                    <div className="flex items-center gap-4 text-white/40 text-xs mt-1 font-sans">
-                      <div className="flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5" />
-                        <span>{service.duration} mins</span>
-                      </div>
-                      <div>
-                        <span>NPR {service.pricing.toLocaleString()}</span>
-                      </div>
-                    </div>
-                    <p className="text-white/40 text-xs line-clamp-2 mt-2 font-sans">
-                      {service.description}
+                    <p className="text-brand-rosegold text-xs font-semibold mt-0.5">
+                      {stylist.specialization}
                     </p>
+                  </div>
+
+                  <div className="space-y-1.5 text-xs text-white/60">
+                    <div className="flex items-center gap-1.5">
+                      <Award className="w-3.5 h-3.5 text-brand-gold shrink-0" />
+                      <span>{stylist.experience} Experience</span>
+                    </div>
+                    {stylist.certifications && (
+                      <p className="line-clamp-2 leading-relaxed text-[11px] text-white/40">
+                        <strong>Certs:</strong> {stylist.certifications}
+                      </p>
+                    )}
+                    {stylist.socials && (
+                      <p className="line-clamp-1 text-[11px] text-white/40 flex items-center gap-1">
+                        <Globe className="w-3 h-3 text-white/30" />
+                        <span>{stylist.socials}</span>
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
 
-              <div className="p-4 pt-0">
+              {/* Actions */}
+              <div className="p-5 pt-0">
                 <div className="flex items-center gap-2 pt-3 border-t border-white/[0.06]">
                   <button
-                    onClick={() => openEditForm(service)}
+                    onClick={() => openEditForm(stylist)}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.05] text-white/60 hover:text-white hover:bg-white/[0.08] transition-colors text-xs font-medium cursor-pointer"
                   >
                     <Pencil className="w-3 h-3" />
                     Edit
                   </button>
                   <button
-                    onClick={() => setServiceToDelete(service.id)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 transition-colors text-xs font-medium cursor-pointer"
+                    onClick={() => setStylistToDelete(stylist.id)}
+                    disabled={deleting === stylist.id}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 transition-colors text-xs font-medium cursor-pointer disabled:opacity-50"
                   >
-                    <Trash2 className="w-3 h-3" />
-                    Delete
+                    {deleting === stylist.id ? (
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                    ) : (
+                      <Trash2 className="w-3 h-3" />
+                    )}
+                    Remove
                   </button>
                 </div>
               </div>
@@ -266,7 +268,7 @@ export default function AdminServicesPage() {
             >
               <div className="flex items-center justify-between p-6 border-b border-white/[0.06]">
                 <h2 className="font-serif text-lg font-semibold text-white">
-                  {editingId ? 'Edit Service' : 'New Service'}
+                  {editingId ? 'Edit Team Member' : 'Add Team Member'}
                 </h2>
                 <button
                   onClick={() => setShowForm(false)}
@@ -277,113 +279,85 @@ export default function AdminServicesPage() {
               </div>
 
               <form onSubmit={handleSubmit} className="p-6 space-y-5">
-                <div className="grid grid-cols-2 gap-4">
-                  {/* Title */}
-                  <div>
-                    <label className="block text-xs font-medium text-white/50 uppercase tracking-wider mb-2">
-                      Title *
-                    </label>
-                    <input
-                      type="text"
-                      value={form.title}
-                      onChange={(e) =>
-                        setForm({ ...form, title: e.target.value })
-                      }
-                      required
-                      className="w-full bg-white/[0.05] border border-white/[0.08] text-white px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-brand-rosegold/50 transition-colors"
-                    />
-                  </div>
-
-                  {/* Category */}
-                  <div>
-                    <label className="block text-xs font-medium text-white/50 uppercase tracking-wider mb-2">
-                      Category *
-                    </label>
-                    <select
-                      value={form.category}
-                      onChange={(e) =>
-                        setForm({ ...form, category: e.target.value })
-                      }
-                      className="w-full bg-white/[0.05] border border-white/[0.08] text-white px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-brand-rosegold/50 transition-colors"
-                    >
-                      {CATEGORIES.map((cat) => (
-                        <option
-                          key={cat}
-                          value={cat}
-                          className="bg-brand-charcoal"
-                        >
-                          {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  {/* Duration */}
-                  <div>
-                    <label className="block text-xs font-medium text-white/50 uppercase tracking-wider mb-2">
-                      Duration (minutes) *
-                    </label>
-                    <input
-                      type="number"
-                      value={form.duration}
-                      onChange={(e) =>
-                        setForm({ ...form, duration: e.target.value })
-                      }
-                      required
-                      min="1"
-                      className="w-full bg-white/[0.05] border border-white/[0.08] text-white px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-brand-rosegold/50 transition-colors"
-                    />
-                  </div>
-
-                  {/* Pricing */}
-                  <div>
-                    <label className="block text-xs font-medium text-white/50 uppercase tracking-wider mb-2">
-                      Pricing (NPR) *
-                    </label>
-                    <input
-                      type="number"
-                      value={form.pricing}
-                      onChange={(e) =>
-                        setForm({ ...form, pricing: e.target.value })
-                      }
-                      required
-                      min="0"
-                      className="w-full bg-white/[0.05] border border-white/[0.08] text-white px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-brand-rosegold/50 transition-colors"
-                    />
-                  </div>
-                </div>
-
-                {/* Description */}
+                {/* Name */}
                 <div>
                   <label className="block text-xs font-medium text-white/50 uppercase tracking-wider mb-2">
-                    Description *
+                    Full Name *
                   </label>
-                  <textarea
-                    value={form.description}
-                    onChange={(e) =>
-                      setForm({ ...form, description: e.target.value })
-                    }
+                  <input
+                    type="text"
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
                     required
-                    rows={3}
-                    className="w-full bg-white/[0.05] border border-white/[0.08] text-white px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-brand-rosegold/50 transition-colors resize-none"
+                    className="w-full bg-white/[0.05] border border-white/[0.08] text-white px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-brand-rosegold/50 transition-colors"
+                    placeholder="e.g. Kelsang Dolma"
                   />
                 </div>
 
-                {/* Benefits */}
+                {/* Specialization & Experience */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-medium text-white/50 uppercase tracking-wider mb-2">
+                      Specialization *
+                    </label>
+                    <input
+                      type="text"
+                      value={form.specialization}
+                      onChange={(e) =>
+                        setForm({ ...form, specialization: e.target.value })
+                      }
+                      required
+                      className="w-full bg-white/[0.05] border border-white/[0.08] text-white px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-brand-rosegold/50 transition-colors"
+                      placeholder="e.g. Korean Glass Skin, Micro-needling"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-white/50 uppercase tracking-wider mb-2">
+                      Experience (e.g. 8+ Years) *
+                    </label>
+                    <input
+                      type="text"
+                      value={form.experience}
+                      onChange={(e) =>
+                        setForm({ ...form, experience: e.target.value })
+                      }
+                      required
+                      className="w-full bg-white/[0.05] border border-white/[0.08] text-white px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-brand-rosegold/50 transition-colors"
+                      placeholder="e.g. 8+ Years"
+                    />
+                  </div>
+                </div>
+
+                {/* Certifications */}
                 <div>
                   <label className="block text-xs font-medium text-white/50 uppercase tracking-wider mb-2">
-                    Benefits (one per line)
+                    Certifications (comma separated) *
                   </label>
-                  <textarea
-                    value={form.benefits}
+                  <input
+                    type="text"
+                    value={form.certifications}
                     onChange={(e) =>
-                      setForm({ ...form, benefits: e.target.value })
+                      setForm({ ...form, certifications: e.target.value })
                     }
-                    rows={3}
-                    className="w-full bg-white/[0.05] border border-white/[0.08] text-white px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-brand-rosegold/50 transition-colors resize-none"
-                    placeholder="E.g. Hydrates skin deeply&#10;Restores natural elasticity&#10;Reduces fine lines"
+                    required
+                    className="w-full bg-white/[0.05] border border-white/[0.08] text-white px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-brand-rosegold/50 transition-colors"
+                    placeholder="e.g. CIDESCO Diploma, Korean Skin Academy Cert"
+                  />
+                </div>
+
+                {/* Social Links */}
+                <div>
+                  <label className="block text-xs font-medium text-white/50 uppercase tracking-wider mb-2">
+                    Socials (comma separated, e.g. instagram:url,facebook:url)
+                  </label>
+                  <input
+                    type="text"
+                    value={form.socials}
+                    onChange={(e) =>
+                      setForm({ ...form, socials: e.target.value })
+                    }
+                    className="w-full bg-white/[0.05] border border-white/[0.08] text-white px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-brand-rosegold/50 transition-colors"
+                    placeholder="e.g. instagram:https://instagram.com/user,facebook:https://facebook.com/user"
                   />
                 </div>
 
@@ -412,8 +386,8 @@ export default function AdminServicesPage() {
                     }
                     className="w-4 h-4 rounded border-white/20 bg-white/5 text-brand-rosegold focus:ring-brand-rosegold cursor-pointer"
                   />
-                  <span className="text-sm text-white/60 font-sans">
-                    Featured on homepage
+                  <span className="text-sm text-white/60">
+                    Featured on homepage team slider
                   </span>
                 </label>
 
@@ -429,7 +403,7 @@ export default function AdminServicesPage() {
                     ) : (
                       <Save className="w-4 h-4" />
                     )}
-                    {editingId ? 'Update Service' : 'Create Service'}
+                    {editingId ? 'Update Team Member' : 'Add Team Member'}
                   </button>
                   <button
                     type="button"
@@ -447,14 +421,14 @@ export default function AdminServicesPage() {
 
       {/* Dynamic Confirmation Dialog Modal */}
       <ConfirmModal
-        isOpen={serviceToDelete !== null}
-        title="Delete Service?"
-        message="Are you sure you want to delete this service? This action cannot be undone."
-        isLoading={deleting === serviceToDelete && deleting !== null}
+        isOpen={stylistToDelete !== null}
+        title="Remove Team Member?"
+        message="Are you sure you want to remove this team member? This action cannot be undone."
+        isLoading={deleting === stylistToDelete && deleting !== null}
         onConfirm={() => {
-          if (serviceToDelete) handleDelete(serviceToDelete);
+          if (stylistToDelete) handleDelete(stylistToDelete);
         }}
-        onCancel={() => setServiceToDelete(null)}
+        onCancel={() => setStylistToDelete(null)}
       />
     </div>
   );

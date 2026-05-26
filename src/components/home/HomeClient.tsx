@@ -67,19 +67,18 @@ export default function HomeClient({
   reviews,
 }: HomeClientProps) {
   const [activeReview, setActiveReview] = useState(0);
-  const [showPopup, setShowPopup] = useState(false);
-  const [popupEmail, setPopupEmail] = useState('');
-  const [popupStatus, setPopupStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
   // ─── Dynamic Salon status & slot meter ─────────────────────────────────────
   const [salonStatus, setSalonStatus] = useState<{
     isOpen: boolean;
     slotsRemaining: number;
     kathmanduTimeStr: string;
+    openHour: number;
   }>({
     isOpen: true,
     slotsRemaining: 4,
     kathmanduTimeStr: '',
+    openHour: 10,
   });
 
   // ─── Dynamic rotating text ─────────────────────────────────────────────────
@@ -100,9 +99,25 @@ export default function HomeClient({
     return () => clearInterval(textTimer);
   }, []);
 
-  // Update live status based on Nepal local time (UTC+5:45)
+  // Update live status based on Nepal local time (UTC+5:45) and database overrides
   useEffect(() => {
-    const updateStatus = () => {
+    const updateStatus = async () => {
+      let statusOverride = 'auto';
+      let openHour = 10;
+      let closeHour = 20;
+      try {
+        const res = await fetch('/api/settings');
+        const data = await res.json();
+        if (data.success) {
+          statusOverride = data.value;
+          openHour = data.autoOpenHour ?? 10;
+          closeHour = data.autoCloseHour ?? 20;
+        }
+      } catch (error) {
+        // Gracefully handle server HMR hot-reload restarts or minor network hiccups.
+        // The background updateStatus interval will automatically retry and recover on the next tick.
+      }
+
       const now = new Date();
       const utc = now.getTime() + now.getTimezoneOffset() * 60000;
       const nptOffset = 5.75 * 3600000;
@@ -111,16 +126,23 @@ export default function HomeClient({
       const hours = nptTime.getHours();
       const minutes = nptTime.getMinutes();
       
-      const isOpenNow = hours >= 10 && hours < 20;
+      let isOpenNow = hours >= openHour && hours < closeHour;
+
+      // Handle override
+      if (statusOverride === 'open') {
+        isOpenNow = true;
+      } else if (statusOverride === 'closed') {
+        isOpenNow = false;
+      }
 
       let slots = 0;
-      if (hours < 10) {
+      if (hours < openHour) {
         slots = 8;
-      } else if (hours >= 10 && hours < 13) {
+      } else if (hours >= openHour && hours < openHour + 3) {
         slots = 6;
-      } else if (hours >= 13 && hours < 16) {
+      } else if (hours >= openHour + 3 && hours < openHour + 6) {
         slots = 4;
-      } else if (hours >= 16 && hours < 19) {
+      } else if (hours >= openHour + 6 && hours < closeHour) {
         slots = 2;
       } else {
         slots = 0;
@@ -135,6 +157,7 @@ export default function HomeClient({
         isOpen: isOpenNow,
         slotsRemaining: slots,
         kathmanduTimeStr,
+        openHour,
       });
     };
 
@@ -143,16 +166,7 @@ export default function HomeClient({
     return () => clearInterval(interval);
   }, []);
 
-  // Trigger popup after 4 seconds
-  useEffect(() => {
-    const shown = localStorage.getItem('glow_popup_shown');
-    if (!shown) {
-      const timer = setTimeout(() => {
-        setShowPopup(true);
-      }, 4000);
-      return () => clearTimeout(timer);
-    }
-  }, []);
+
 
   // Automatic testimonial rotation
   useEffect(() => {
@@ -163,32 +177,7 @@ export default function HomeClient({
     return () => clearInterval(interval);
   }, [reviews]);
 
-  const handlePopupSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!popupEmail) return;
-    setPopupStatus('loading');
-    try {
-      const res = await fetch('/api/newsletter', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: popupEmail }),
-      });
-      if (res.ok) {
-        setPopupStatus('success');
-        localStorage.setItem('glow_popup_shown', 'true');
-        setTimeout(() => setShowPopup(false), 2000);
-      } else {
-        setPopupStatus('error');
-      }
-    } catch {
-      setPopupStatus('error');
-    }
-  };
 
-  const closePopup = () => {
-    setShowPopup(false);
-    localStorage.setItem('glow_popup_shown', 'true');
-  };
 
   // Determine seasonal offer based on current month in Nepal
   const getSeasonalOffer = () => {
@@ -267,7 +256,7 @@ export default function HomeClient({
               {salonStatus.isOpen ? (
                 <>SALON OPEN • {salonStatus.kathmanduTimeStr}</>
               ) : (
-                <>SALON CLOSED • {salonStatus.kathmanduTimeStr} (Opens 10 AM)</>
+                <>SALON CLOSED • {salonStatus.kathmanduTimeStr} (Opens {salonStatus.openHour % 12 || 12} {salonStatus.openHour >= 12 ? 'PM' : 'AM'})</>
               )}
             </span>
             <span className="w-1.5 h-1.5 rounded-full bg-brand-beige/25"></span>
@@ -284,7 +273,7 @@ export default function HomeClient({
             initial={{ opacity: 0, y: 25 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="font-serif text-4xl sm:text-6xl lg:text-7xl font-light text-brand-beige leading-tight tracking-tight flex flex-col items-center justify-center gap-2"
+            className="w-full font-serif text-4xl sm:text-6xl lg:text-7xl font-light text-brand-beige leading-tight tracking-tight flex flex-col items-center justify-center gap-2"
           >
             <span>Luxury Beauty &amp;</span>
             <div className="h-[50px] sm:h-[80px] relative overflow-hidden w-full flex items-center justify-center">
@@ -295,7 +284,7 @@ export default function HomeClient({
                   animate={{ y: 0, opacity: 1 }}
                   exit={{ y: -35, opacity: 0 }}
                   transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
-                  className="absolute font-normal italic text-rose-gold-gradient block whitespace-nowrap"
+                  className="absolute font-normal italic text-rose-gold-gradient block whitespace-nowrap text-[6vw] sm:text-[4.5vw] md:text-5xl lg:text-7xl"
                 >
                   {ROTATING_TEXTS[textIndex]}
                 </motion.span>
@@ -680,19 +669,12 @@ export default function HomeClient({
                 key={stylist.id}
                 className="glass-card rounded-2xl overflow-hidden flex flex-col group border border-brand-pink-accent/20"
               >
-                <div className="relative aspect-[4/5] overflow-hidden bg-brand-beige/10">
+                <div className="relative aspect-[16/10] overflow-hidden bg-brand-beige/10">
                   <img
                     src={stylist.image}
                     alt={stylist.name}
                     className="w-full h-full object-cover group-hover:scale-102 transition-transform duration-500"
                   />
-                  {/* Subtle details overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-brand-charcoal-dark/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
-                    <div className="flex flex-col text-white">
-                      <span className="text-xs text-brand-rosegold font-semibold uppercase tracking-wider">Certifications</span>
-                      <span className="text-[10px] text-white/80 line-clamp-2">{stylist.certifications}</span>
-                    </div>
-                  </div>
                 </div>
                 <div className="p-6 flex flex-col gap-4 justify-between flex-grow">
                   <div className="flex flex-col gap-1">
@@ -716,84 +698,6 @@ export default function HomeClient({
         </div>
       </section>
 
-      {/* 9. PROMOTIONAL DISCOUNT MODAL POPUP */}
-      <AnimatePresence>
-        {showPopup && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-brand-charcoal-dark/70 flex items-center justify-center p-4 backdrop-blur-sm"
-          >
-            <motion.div
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              className="bg-brand-beige w-full max-w-md rounded-2xl overflow-hidden shadow-2xl relative border border-brand-pink-accent/40"
-            >
-              <button
-                onClick={closePopup}
-                className="absolute top-4 right-4 text-brand-charcoal/60 hover:text-brand-charcoal p-1 rounded-full bg-white/50 backdrop-blur-sm transition-colors cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-
-              <div className="p-8 flex flex-col items-center text-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-r from-brand-pink-accent to-brand-rosegold text-brand-charcoal-dark flex items-center justify-center">
-                  <Sparkles className="w-5 h-5" />
-                </div>
-
-                <div className="flex flex-col gap-1">
-                  <span className="text-[10px] text-brand-rosegold-dark font-bold uppercase tracking-widest">
-                    Exclusive Welcome Gift
-                  </span>
-                  <h3 className="font-serif text-2xl text-brand-charcoal">
-                    Join the Glow Circle
-                  </h3>
-                </div>
-
-                <p className="text-xs text-brand-charcoal/80 font-light leading-relaxed">
-                  Enter your email to unlock an instant <strong className="text-brand-rosegold-dark">15% discount voucher</strong> for your next hair or facial service.
-                </p>
-
-                <div className="w-full bg-white/70 p-4 rounded-xl border border-brand-pink-accent/20">
-                  <div className="text-3xl font-serif text-brand-rosegold-dark font-semibold">15% OFF</div>
-                  <div className="text-[9px] uppercase tracking-wider text-brand-charcoal/40 font-bold mt-1">Your First Booking</div>
-                </div>
-
-                <form onSubmit={handlePopupSubmit} className="w-full flex flex-col gap-2.5 mt-2">
-                  <input
-                    type="email"
-                    placeholder="Enter your email address"
-                    value={popupEmail}
-                    onChange={(e) => setPopupEmail(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-lg border border-brand-pink-accent/30 text-sm focus:outline-none focus:border-brand-rosegold text-brand-charcoal"
-                    required
-                  />
-                  <button
-                    type="submit"
-                    disabled={popupStatus === 'loading'}
-                    className="w-full py-2.5 bg-brand-charcoal text-white hover:bg-brand-charcoal-dark text-xs font-semibold tracking-wider uppercase rounded-lg transition-colors cursor-pointer disabled:opacity-50"
-                  >
-                    {popupStatus === 'loading' ? 'Verifying...' : popupStatus === 'success' ? 'Voucher Unlocked!' : 'Get My 15% Voucher'}
-                  </button>
-                </form>
-
-                {popupStatus === 'success' && (
-                  <p className="text-xs text-emerald-600 font-semibold flex items-center gap-1">
-                    <Check className="w-4 h-4" /> Check your email for the voucher code!
-                  </p>
-                )}
-                {popupStatus === 'error' && (
-                  <p className="text-xs text-rose-600 font-medium">
-                    Something went wrong. Please try again.
-                  </p>
-                )}
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

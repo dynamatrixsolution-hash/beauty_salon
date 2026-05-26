@@ -13,6 +13,7 @@ import {
   Star,
   Save,
 } from 'lucide-react';
+import ConfirmModal from '@/components/ui/ConfirmModal';
 
 const CATEGORIES = ['skincare', 'haircare', 'makeup', 'spa', 'tools'];
 
@@ -37,6 +38,9 @@ export default function AdminProductsPage() {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
+  
+  // Custom Confirmation Dialog State
+  const [productToDelete, setProductToDelete] = useState<string | null>(null);
 
   const fetchProducts = async () => {
     try {
@@ -107,7 +111,6 @@ export default function AdminProductsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this product?')) return;
     setDeleting(id);
 
     try {
@@ -115,6 +118,7 @@ export default function AdminProductsPage() {
       const data = await res.json();
       if (data.success) {
         setProducts((prev) => prev.filter((p) => p.id !== id));
+        setProductToDelete(null); // Close the confirmation modal
       }
     } catch (error) {
       console.error('Failed to delete product:', error);
@@ -212,15 +216,10 @@ export default function AdminProductsPage() {
                     Edit
                   </button>
                   <button
-                    onClick={() => handleDelete(product.id)}
-                    disabled={deleting === product.id}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 transition-colors text-xs font-medium cursor-pointer disabled:opacity-50"
+                    onClick={() => setProductToDelete(product.id)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 transition-colors text-xs font-medium cursor-pointer"
                   >
-                    {deleting === product.id ? (
-                      <Loader2 className="w-3 h-3 animate-spin" />
-                    ) : (
-                      <Trash2 className="w-3 h-3" />
-                    )}
+                    <Trash2 className="w-3 h-3" />
                     Delete
                   </button>
                 </div>
@@ -403,6 +402,18 @@ export default function AdminProductsPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Dynamic Confirmation Dialog Modal */}
+      <ConfirmModal
+        isOpen={productToDelete !== null}
+        title="Delete Product?"
+        message="Are you sure you want to delete this product? This action cannot be undone."
+        isLoading={deleting === productToDelete && deleting !== null}
+        onConfirm={() => {
+          if (productToDelete) handleDelete(productToDelete);
+        }}
+        onCancel={() => setProductToDelete(null)}
+      />
     </div>
   );
 }

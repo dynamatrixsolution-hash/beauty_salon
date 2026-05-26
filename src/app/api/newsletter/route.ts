@@ -14,13 +14,17 @@ export async function POST(req: Request) {
         customerName: 'Newsletter Subscriber',
         customerEmail: email,
         customerPhone: '',
-        type: 'general',
+        type: 'newsletter',
         details: 'Signed up for the newsletter / discount circle in footer.',
         status: 'pending',
       },
     });
 
-    return NextResponse.json({ success: true, message: 'Successfully subscribed!' });
+    return NextResponse.json({ 
+      success: true, 
+      message: 'Successfully subscribed!', 
+      code: 'GLOWNEPAL15' 
+    });
   } catch (error) {
     console.error('Newsletter subscription error:', error);
     return NextResponse.json({ error: 'Failed to register subscription' }, { status: 500 });

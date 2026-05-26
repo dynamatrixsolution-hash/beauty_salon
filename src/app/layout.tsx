@@ -3,6 +3,7 @@ import { Cormorant_Garamond, Poppins } from "next/font/google";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import AIConcierge from "@/components/layout/AIConcierge";
+import PromoPopup from "@/components/layout/PromoPopup";
 import "./globals.css";
 
 const cormorant = Cormorant_Garamond({
@@ -47,6 +48,7 @@ export default function RootLayout({
         <main className="flex-grow">{children}</main>
         <Footer />
         <AIConcierge />
+        <PromoPopup />
       </body>
     </html>
   );
