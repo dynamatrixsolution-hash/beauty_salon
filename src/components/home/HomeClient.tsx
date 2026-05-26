@@ -341,10 +341,6 @@ export default function HomeClient({
                   className="w-full h-full object-cover"
                 />
               </div>
-              {/* Luxury Accent */}
-              <div className="absolute -top-6 -right-6 w-24 h-24 rounded-full border border-brand-rosegold/20 flex items-center justify-center animate-pulse-slow">
-                <Sparkles className="w-8 h-8 text-brand-gold/60" />
-              </div>
             </div>
 
             {/* Narrative Column */}
