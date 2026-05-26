@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Sparkles, X, Send, User, Bot, Loader2 } from 'lucide-react';
+import { Sparkles, X, Send, User, Bot, Loader2, Mic, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePathname } from 'next/navigation';
 
@@ -9,13 +9,14 @@ interface Message {
   id: string;
   role: 'ai' | 'user';
   content: string;
+  type?: 'ai' | 'trusted' | 'fallback';
 }
 
 const SUGGESTED_ACTIONS = [
   "Bridal Packages 💍",
   "Facial Treatments ✨",
   "Hair Services 💇‍♀️",
-  "Book Appointment 📅"
+  "Pricing 💰"
 ];
 
 export default function AIConcierge() {
@@ -24,7 +25,8 @@ export default function AIConcierge() {
     {
       id: 'welcome',
       role: 'ai',
-      content: 'Welcome to Glow & Grace ✨ How may I help you today?'
+      content: 'Welcome to Glow & Grace ✨ How may I help you today?',
+      type: 'ai'
     }
   ]);
   const [inputValue, setInputValue] = useState('');
@@ -49,14 +51,28 @@ export default function AIConcierge() {
     setInputValue('');
     setIsTyping(true);
 
-    // Simulate AI response (since this is UI only for now)
+    // Simulate AI / Knowledge Base response routing (UI Concept Mock)
     setTimeout(() => {
       setIsTyping(false);
-      const aiMsg: Message = { 
-        id: (Date.now() + 1).toString(), 
-        role: 'ai', 
-        content: "I'm a luxury digital concierge in training. Please check our services page or WhatsApp us to book a consultation! ✨" 
-      };
+      let aiMsg: Message;
+      
+      if (text.toLowerCase().includes('pricing') || text.includes('💰')) {
+        // Mock matching an Admin predefined Q&A
+        aiMsg = { 
+          id: (Date.now() + 1).toString(), 
+          role: 'ai', 
+          type: 'trusted',
+          content: "Our signature hair services start at NPR 2,500, and our royal bridal packages begin at NPR 25,000. All prices include premium imported products and taxes." 
+        };
+      } else {
+        // Mock standard AI generated response
+        aiMsg = { 
+          id: (Date.now() + 1).toString(), 
+          role: 'ai', 
+          type: 'ai',
+          content: "I recommend our 'Korean Glass Skin Facial' for a beautiful glow! Would you like me to share more details about the procedure or help you book?" 
+        };
+      }
       setMessages(prev => [...prev, aiMsg]);
     }, 1500);
   };
@@ -86,8 +102,8 @@ export default function AIConcierge() {
                   <span className="text-sm font-semibold text-rose-gold-gradient tracking-wide">
                     Glow AI Concierge ✨
                   </span>
-                  <span className="text-[10px] text-brand-charcoal/50 uppercase tracking-widest font-medium">
-                    Online
+                  <span className="text-[10px] text-emerald-600/80 uppercase tracking-widest font-bold">
+                    Hybrid System Online
                   </span>
                 </div>
               </div>
@@ -109,19 +125,36 @@ export default function AIConcierge() {
                   className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} items-end gap-2 max-w-full`}
                 >
                   {msg.role === 'ai' && (
-                    <div className="w-6 h-6 rounded-full bg-brand-pink-light border border-brand-pink-accent/30 flex items-center justify-center shrink-0 mb-1">
-                      <Sparkles className="w-3 h-3 text-brand-rosegold-dark" />
+                    <div className="flex flex-col gap-1 shrink-0 mb-1">
+                      {msg.type === 'trusted' ? (
+                        <div className="w-6 h-6 rounded-full bg-brand-gold/10 border border-brand-gold/40 flex items-center justify-center">
+                          <ShieldCheck className="w-3.5 h-3.5 text-brand-gold" />
+                        </div>
+                      ) : (
+                        <div className="w-6 h-6 rounded-full bg-brand-pink-light border border-brand-pink-accent/30 flex items-center justify-center">
+                          <Sparkles className="w-3 h-3 text-brand-rosegold-dark" />
+                        </div>
+                      )}
                     </div>
                   )}
                   
-                  <div 
-                    className={`max-w-[80%] text-sm px-4 py-2.5 rounded-2xl leading-relaxed ${
-                      msg.role === 'user'
-                        ? 'bg-gradient-to-br from-brand-rosegold to-brand-rosegold-dark text-white rounded-br-sm shadow-sm'
-                        : 'bg-white/80 backdrop-blur-sm border border-brand-pink-accent/30 text-brand-charcoal rounded-bl-sm shadow-sm'
-                    }`}
-                  >
-                    {msg.content}
+                  <div className="flex flex-col gap-1 max-w-[80%]">
+                    {msg.type === 'trusted' && (
+                      <span className="text-[9px] font-bold uppercase tracking-widest text-brand-gold pl-1">
+                        Trusted Answer
+                      </span>
+                    )}
+                    <div 
+                      className={`text-sm px-4 py-2.5 rounded-2xl leading-relaxed ${
+                        msg.role === 'user'
+                          ? 'bg-gradient-to-br from-brand-rosegold to-brand-rosegold-dark text-white rounded-br-sm shadow-sm'
+                          : msg.type === 'trusted' 
+                            ? 'bg-brand-beige/90 backdrop-blur-sm border border-brand-gold/30 text-brand-charcoal rounded-bl-sm shadow-md'
+                            : 'bg-white/80 backdrop-blur-sm border border-brand-pink-accent/30 text-brand-charcoal rounded-bl-sm shadow-sm'
+                      }`}
+                    >
+                      {msg.content}
+                    </div>
                   </div>
                 </motion.div>
               ))}
@@ -176,17 +209,22 @@ export default function AIConcierge() {
                 onSubmit={(e) => { e.preventDefault(); handleSend(inputValue); }}
                 className="flex items-center gap-2"
               >
-                <input
-                  type="text"
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  placeholder="Ask about our services..."
-                  className="flex-1 bg-white/80 border border-brand-pink-accent/40 rounded-full px-4 py-2 text-sm text-brand-charcoal focus:outline-none focus:border-brand-rosegold shadow-inner"
-                />
+                <div className="flex-1 relative">
+                  <input
+                    type="text"
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    placeholder="Ask AI or check pricing..."
+                    className="w-full bg-white/80 border border-brand-pink-accent/40 rounded-full pl-4 pr-10 py-2.5 text-sm text-brand-charcoal focus:outline-none focus:border-brand-rosegold shadow-inner"
+                  />
+                  <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-brand-rosegold/60 hover:text-brand-rosegold transition-colors cursor-pointer">
+                    <Mic className="w-4 h-4" />
+                  </button>
+                </div>
                 <button
                   type="submit"
                   disabled={!inputValue.trim()}
-                  className="w-9 h-9 rounded-full bg-brand-rosegold hover:bg-brand-rosegold-dark disabled:bg-brand-rosegold/50 text-white flex items-center justify-center transition-colors shadow-md cursor-pointer shrink-0"
+                  className="w-10 h-10 rounded-full bg-brand-rosegold hover:bg-brand-rosegold-dark disabled:bg-brand-rosegold/50 text-white flex items-center justify-center transition-colors shadow-md cursor-pointer shrink-0"
                 >
                   <Send className="w-4 h-4 ml-0.5" />
                 </button>
@@ -229,13 +267,6 @@ export default function AIConcierge() {
             </motion.div>
           )}
         </AnimatePresence>
-
-        {/* Hover mini-badge (only when closed) */}
-        {!isOpen && (
-          <span className="absolute -left-[140px] bg-brand-charcoal text-white text-[10px] font-semibold py-1.5 px-3 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none shadow-md border border-brand-charcoal-dark whitespace-nowrap">
-            Glow AI Concierge ✨
-          </span>
-        )}
       </motion.button>
     </div>
   );
