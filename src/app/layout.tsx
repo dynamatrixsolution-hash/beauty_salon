@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Cormorant_Garamond, Poppins } from "next/font/google";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
-import WhatsAppFloatingButton from "@/components/layout/WhatsAppFloatingButton";
+import AIConcierge from "@/components/layout/AIConcierge";
 import "./globals.css";
 
 const cormorant = Cormorant_Garamond({
@@ -46,7 +46,7 @@ export default function RootLayout({
         <Navbar />
         <main className="flex-grow">{children}</main>
         <Footer />
-        <WhatsAppFloatingButton />
+        <AIConcierge />
       </body>
     </html>
   );
