@@ -168,10 +168,6 @@ export default function BookingWizard({ services, stylists }: BookingWizardProps
         {/* Header (Hide in confirmation screen) */}
         {step < 5 && (
           <div className="text-center flex flex-col items-center gap-3">
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-pink-medium/40 border border-brand-pink-accent/40 text-brand-rosegold-dark text-[10px] font-bold uppercase tracking-wider">
-              <Sparkles className="w-3.5 h-3.5 text-brand-gold animate-pulse-slow" />
-              Luxury Reservation
-            </div>
             <h1 className="font-serif text-3xl sm:text-5xl font-light text-brand-charcoal">
               Book Your <span className="font-normal italic text-rose-gold-gradient">Radiance</span>
             </h1>

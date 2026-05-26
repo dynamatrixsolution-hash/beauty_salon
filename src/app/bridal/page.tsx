@@ -32,10 +32,6 @@ export default function BridalPage() {
         
         {/* Intro Header */}
         <div className="text-center flex flex-col items-center gap-4">
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-pink-medium/40 border border-brand-pink-accent/40 text-brand-rosegold-dark text-[10px] font-bold uppercase tracking-wider">
-            <Heart className="w-3.5 h-3.5 text-brand-rosegold-dark animate-pulse" />
-            Royal Wedding Portfolios
-          </div>
           <h1 className="font-serif text-4xl sm:text-6xl font-light text-brand-charcoal">
             The Dream Bridal <span className="font-normal italic text-rose-gold-gradient">Glow</span>
           </h1>

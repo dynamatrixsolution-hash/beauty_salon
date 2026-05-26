@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Sparkles, Camera, Heart, HelpCircle, ArrowRight } from 'lucide-react';
+import { Sparkles, Heart, HelpCircle, ArrowRight } from 'lucide-react';
 import BeforeAfterSlider from '@/components/ui/BeforeAfterSlider';
 import Link from 'next/link';
 
@@ -55,10 +55,6 @@ export default function GalleryPage() {
         
         {/* Header */}
         <div className="text-center flex flex-col items-center gap-4">
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-pink-medium/40 border border-brand-pink-accent/40 text-brand-rosegold-dark text-[10px] font-bold uppercase tracking-wider">
-            <Camera className="w-3.5 h-3.5 text-brand-rosegold-dark" />
-            Interactive Portfolio
-          </div>
           <h1 className="font-serif text-4xl sm:text-6xl font-light text-brand-charcoal">
             Before &amp; After <span className="font-normal italic text-rose-gold-gradient">Gallery</span>
           </h1>

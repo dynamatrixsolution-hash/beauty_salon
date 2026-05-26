@@ -92,10 +92,6 @@ export default function ProductsClient({ products }: ProductsClientProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-12">
         {/* Header */}
         <div className="text-center flex flex-col items-center gap-4">
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-pink-medium/40 border border-brand-pink-accent/40 text-brand-rosegold-dark text-[10px] font-bold uppercase tracking-wider">
-            <Sparkles className="w-3.5 h-3.5 text-brand-gold" />
-            Exquisite Product Catalog
-          </div>
           <h1 className="font-serif text-4xl sm:text-6xl font-light text-brand-charcoal">
             Premium <span className="font-normal italic text-rose-gold-gradient">Studio Boutique</span>
           </h1>

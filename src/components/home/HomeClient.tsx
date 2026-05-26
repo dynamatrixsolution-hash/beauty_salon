@@ -1,13 +1,55 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { 
   Sparkles, Calendar, ArrowRight, Check, Star, 
   MessageSquare, Camera, ShieldAlert, Award, Clock, X
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useInView } from 'framer-motion';
 import BeforeAfterSlider from '../ui/BeforeAfterSlider';
+
+// ─── Custom scroll-triggered animated counter ────────────────────────────────
+function CounterItem({ value, suffix = "", label }: { value: number; suffix?: string; label: string }) {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    if (!isInView) return;
+
+    let start = 0;
+    const end = value;
+    const duration = 1.5;
+    const totalMiliseconds = duration * 1000;
+    const incrementTime = 30; // 30ms step
+    const steps = totalMiliseconds / incrementTime;
+    const increment = end / steps;
+
+    const timer = setInterval(() => {
+      start += increment;
+      if (start >= end) {
+        clearInterval(timer);
+        setCount(end);
+      } else {
+        setCount(Math.floor(start));
+      }
+    }, incrementTime);
+
+    return () => clearInterval(timer);
+  }, [isInView, value]);
+
+  return (
+    <div ref={ref} className="flex flex-col gap-1">
+      <span className="font-serif text-3xl sm:text-4xl font-semibold text-brand-rosegold-dark">
+        {count}{suffix}
+      </span>
+      <span className="text-xs text-brand-charcoal/70 uppercase tracking-wider font-semibold">
+        {label}
+      </span>
+    </div>
+  );
+}
 
 interface HomeClientProps {
   services: any[];
@@ -28,6 +70,78 @@ export default function HomeClient({
   const [showPopup, setShowPopup] = useState(false);
   const [popupEmail, setPopupEmail] = useState('');
   const [popupStatus, setPopupStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+
+  // ─── Dynamic Salon status & slot meter ─────────────────────────────────────
+  const [salonStatus, setSalonStatus] = useState<{
+    isOpen: boolean;
+    slotsRemaining: number;
+    kathmanduTimeStr: string;
+  }>({
+    isOpen: true,
+    slotsRemaining: 4,
+    kathmanduTimeStr: '',
+  });
+
+  // ─── Dynamic rotating text ─────────────────────────────────────────────────
+  const [textIndex, setTextIndex] = useState(0);
+  const ROTATING_TEXTS = [
+    "Wellness Experience",
+    "Korean Glass Skin Facials",
+    "Bespoke Hair Artistry",
+    "Royal Bridal Makeovers",
+    "Luxury Pampering Rituals"
+  ];
+
+  // Rotate text every 3.5 seconds
+  useEffect(() => {
+    const textTimer = setInterval(() => {
+      setTextIndex((prev) => (prev + 1) % ROTATING_TEXTS.length);
+    }, 3500);
+    return () => clearInterval(textTimer);
+  }, []);
+
+  // Update live status based on Nepal local time (UTC+5:45)
+  useEffect(() => {
+    const updateStatus = () => {
+      const now = new Date();
+      const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+      const nptOffset = 5.75 * 3600000;
+      const nptTime = new Date(utc + nptOffset);
+
+      const hours = nptTime.getHours();
+      const minutes = nptTime.getMinutes();
+      
+      const isOpenNow = hours >= 10 && hours < 20;
+
+      let slots = 0;
+      if (hours < 10) {
+        slots = 8;
+      } else if (hours >= 10 && hours < 13) {
+        slots = 6;
+      } else if (hours >= 13 && hours < 16) {
+        slots = 4;
+      } else if (hours >= 16 && hours < 19) {
+        slots = 2;
+      } else {
+        slots = 0;
+      }
+
+      const pad = (n: number) => n.toString().padStart(2, '0');
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      const displayHours = hours % 12 || 12;
+      const kathmanduTimeStr = `${pad(displayHours)}:${pad(minutes)} ${ampm} NPT`;
+
+      setSalonStatus({
+        isOpen: isOpenNow,
+        slotsRemaining: slots,
+        kathmanduTimeStr,
+      });
+    };
+
+    updateStatus();
+    const interval = setInterval(updateStatus, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Trigger popup after 4 seconds
   useEffect(() => {
@@ -76,6 +190,54 @@ export default function HomeClient({
     localStorage.setItem('glow_popup_shown', 'true');
   };
 
+  // Determine seasonal offer based on current month in Nepal
+  const getSeasonalOffer = () => {
+    const month = new Date().getMonth(); // 0-indexed (0: Jan, 11: Dec)
+    if (month >= 7 && month <= 8) { // Aug - Sep
+      return {
+        badge: "Teej & Festive Season Exclusive",
+        title: "Glow Like Royalty: Get 15% Off on All Bridal Makeup Packages",
+        desc: "Book before the slots fill up. Valid for upcoming autumn wedding seasons.",
+        btn: "Secure Bridal Slot",
+        link: "/bridal"
+      };
+    } else if (month >= 9 && month <= 10) { // Oct - Nov
+      return {
+        badge: "Dashain & Tihar Festive Glow",
+        title: "Dazzle this Festival: Get 15% Off on Premium Hair & Facials",
+        desc: "Celebrate the season of joy with curated beauty therapies and royal makeovers.",
+        btn: "Secure Festival Slot",
+        link: "/book"
+      };
+    } else if (month === 11 || month <= 1) { // Dec - Feb
+      return {
+        badge: "Winter Solstice & New Year Splendor",
+        title: "Winter Hydration Special: Get 15% Off Korean Hydrafacials",
+        desc: "Protect your winter skin and welcome the New Year with pure radiant glass skin.",
+        btn: "Book Winter Glow",
+        link: "/book"
+      };
+    } else if (month >= 2 && month <= 4) { // Mar - May
+      return {
+        badge: "Spring Renewal & Wedding Season",
+        title: "Spring Radiance Offer: Get 15% Off Royal Bridal Consults & Styling",
+        desc: "Blossom into spring with premium highlights, skin rejuvenation and wedding makeovers.",
+        btn: "Inquire Wedding Packages",
+        link: "/bridal"
+      };
+    } else { // Jun - Jul
+      return {
+        badge: "Summer Glow & Beat-the-Heat Rituals",
+        title: "Sunkissed Radiance: Get 15% Off Body Polishing & Facials",
+        desc: "Beat the summer heat with cooling botanical therapies and hydrating facials.",
+        btn: "Book Summer Cooldown",
+        link: "/book"
+      };
+    }
+  };
+
+  const seasonalOffer = getSeasonalOffer();
+
   return (
     <div className="relative overflow-hidden font-sans">
       {/* 1. CINEMATIC HERO SECTION */}
@@ -89,15 +251,32 @@ export default function HomeClient({
         <div className="absolute inset-0 bg-gradient-to-t from-brand-charcoal-dark via-transparent to-brand-charcoal-dark/60 z-0" />
         
         <div className="relative z-10 max-w-5xl mx-auto px-4 text-center flex flex-col items-center gap-6">
+
+          {/* Glassmorphic Live Salon Status Badge */}
           <motion.div
-            initial={{ opacity: 0, y: 15 }}
+            initial={{ opacity: 0, y: -15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-pink-medium/10 border border-brand-pink-accent/20 backdrop-blur-md"
+            className="flex items-center gap-2.5 px-4.5 py-2 rounded-full backdrop-blur-md bg-brand-charcoal-dark/60 border border-brand-beige/10 shadow-lg text-[10px] sm:text-xs font-semibold text-brand-beige tracking-wider"
           >
-            <Sparkles className="w-4 h-4 text-brand-rosegold" />
-            <span className="text-xs uppercase tracking-widest font-semibold text-brand-pink-accent">
-              Nepal's Elite Beauty Sanctuary
+            <span className="relative flex h-2 w-2">
+              <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${salonStatus.isOpen ? 'bg-emerald-400' : 'bg-amber-400'}`}></span>
+              <span className={`relative inline-flex rounded-full h-2 w-2 ${salonStatus.isOpen ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
+            </span>
+            <span>
+              {salonStatus.isOpen ? (
+                <>SALON OPEN • {salonStatus.kathmanduTimeStr}</>
+              ) : (
+                <>SALON CLOSED • {salonStatus.kathmanduTimeStr} (Opens 10 AM)</>
+              )}
+            </span>
+            <span className="w-1.5 h-1.5 rounded-full bg-brand-beige/25"></span>
+            <span className="text-brand-rosegold font-bold uppercase">
+              {salonStatus.isOpen && salonStatus.slotsRemaining > 0 ? (
+                `Only ${salonStatus.slotsRemaining} VIP Slots Left Today`
+              ) : (
+                "Booking open for tomorrow"
+              )}
             </span>
           </motion.div>
 
@@ -105,10 +284,23 @@ export default function HomeClient({
             initial={{ opacity: 0, y: 25 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="font-serif text-4xl sm:text-6xl lg:text-7xl font-light text-brand-beige leading-tight tracking-tight"
+            className="font-serif text-4xl sm:text-6xl lg:text-7xl font-light text-brand-beige leading-tight tracking-tight flex flex-col items-center justify-center gap-2"
           >
-            Luxury Beauty &amp; <br />
-            <span className="font-normal italic text-rose-gold-gradient">Wellness Experience</span>
+            <span>Luxury Beauty &amp;</span>
+            <div className="h-[50px] sm:h-[80px] relative overflow-hidden w-full flex items-center justify-center">
+              <AnimatePresence mode="wait">
+                <motion.span
+                  key={textIndex}
+                  initial={{ y: 35, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: -35, opacity: 0 }}
+                  transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+                  className="absolute font-normal italic text-rose-gold-gradient block whitespace-nowrap"
+                >
+                  {ROTATING_TEXTS[textIndex]}
+                </motion.span>
+              </AnimatePresence>
+            </div>
           </motion.h1>
 
           <motion.p
@@ -180,14 +372,8 @@ export default function HomeClient({
                 Glow &amp; Grace Studio redefines the premium beauty salon experience in Kathmandu. Combining clinical skincare advancements with high-fashion bridal styling, our aesthetic values detail, pampering, and timeless grace.
               </p>
               <div className="grid grid-cols-2 gap-6 pt-4 border-t border-brand-pink-accent/25">
-                <div className="flex flex-col gap-1">
-                  <span className="font-serif text-2xl font-semibold text-brand-rosegold-dark">100%</span>
-                  <span className="text-xs text-brand-charcoal/70 uppercase tracking-wider font-semibold">Premium Products Only</span>
-                </div>
-                <div className="flex flex-col gap-1">
-                  <span className="font-serif text-2xl font-semibold text-brand-rosegold-dark">8+ Years</span>
-                  <span className="text-xs text-brand-charcoal/70 uppercase tracking-wider font-semibold">Average Specialist Exp.</span>
-                </div>
+                <CounterItem value={100} suffix="%" label="Premium Products Only" />
+                <CounterItem value={8} suffix="+ Years" label="Average Specialist Exp." />
               </div>
               <Link href="/contact" className="mt-4 flex items-center gap-2 text-brand-rosegold-dark text-sm font-semibold hover:text-brand-charcoal transition-colors group">
                 Visit Our Durbarmarg Sanctuary
@@ -275,18 +461,26 @@ export default function HomeClient({
           <div className="flex flex-col gap-2">
             <div className="inline-flex self-center lg:self-start items-center gap-1.5 px-3 py-1 rounded-full bg-brand-rosegold/10 text-brand-rosegold text-[10px] font-semibold uppercase tracking-wider border border-brand-rosegold/20">
               <Sparkles className="w-3 h-3 animate-pulse" />
-              Teej &amp; Festive Season Exclusive
+              {seasonalOffer.badge}
             </div>
             <h3 className="font-serif text-xl sm:text-2xl text-white">
-              Glow Like Royalty: Get <span className="text-brand-rosegold font-semibold">15% Off</span> on All Bridal Makeup Packages
+              {seasonalOffer.title.includes("15% Off") ? (
+                <>
+                  {seasonalOffer.title.split("15% Off")[0]}
+                  <span className="text-brand-rosegold font-semibold">15% Off</span>
+                  {seasonalOffer.title.split("15% Off")[1]}
+                </>
+              ) : (
+                seasonalOffer.title
+              )}
             </h3>
             <p className="text-xs text-brand-beige/60 font-sans">
-              Book before the slots fill up. Valid for upcoming autumn wedding seasons.
+              {seasonalOffer.desc}
             </p>
           </div>
-          <Link href="/bridal">
+          <Link href={seasonalOffer.link}>
             <button className="bg-gradient-to-r from-brand-pink-accent to-brand-rosegold hover:from-brand-rosegold hover:to-brand-rosegold-dark text-brand-charcoal-dark font-medium px-6 py-3 rounded-full text-sm shadow-sm transition-all duration-300 cursor-pointer">
-              Secure Bridal Slot
+              {seasonalOffer.btn}
             </button>
           </Link>
         </div>
