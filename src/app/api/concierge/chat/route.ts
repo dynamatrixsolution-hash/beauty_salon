@@ -34,13 +34,13 @@ function fuzzyMatch(query: string, question: string, category?: string): boolean
   return matched.length / Math.max(qTokens.length, kTokens.length) >= 0.4;
 }
 
-// Salon context prompt for AI (used if AI is configured)
-const SALON_SYSTEM_PROMPT = `You are Glow AI Concierge — a premium, warm, and knowledgeable beauty assistant for "Glow & Grace Studio", a luxury beauty salon located in Kathmandu, Nepal. 
+// Build dynamic AI system prompt from DB knowledge base entries
+function buildSystemPrompt(knowledgeBase: { question: string; answer: string; category: string; isPriority: boolean }[]): string {
+  const basePrompt = `You are Glow AI Concierge — a premium, warm, and knowledgeable beauty assistant for "Glow & Grace Studio", a luxury beauty salon located in Kathmandu, Nepal.
 
 About Glow & Grace Studio:
 - Location: Kathmandu, Nepal
 - Specialties: Bridal makeup, Korean facials, hair styling, skin treatments, spa & wellness
-- Signature services: Royal Bridal Packages, Korean Glass Skin Facial, Balayage & highlights, hair treatments
 - Vibe: Luxury, personalized, premium imported products
 
 Your role:
@@ -52,6 +52,34 @@ Your role:
 - If unsure about specific pricing, direct them to contact the salon
 
 Never mention competitor salons. Always speak as a representative of Glow & Grace Studio.`;
+
+  if (knowledgeBase.length === 0) return basePrompt;
+
+  // Group by category for a clean knowledge section
+  const grouped: Record<string, { question: string; answer: string }[]> = {};
+  for (const entry of knowledgeBase) {
+    if (!grouped[entry.category]) grouped[entry.category] = [];
+    grouped[entry.category].push({ question: entry.question, answer: entry.answer });
+  }
+
+  const kbSection = Object.entries(grouped)
+    .map(([cat, pairs]) => {
+      const pairs_text = pairs
+        .map((p) => `  Q: ${p.question}\n  A: ${p.answer}`)
+        .join('\n\n');
+      return `### ${cat}\n${pairs_text}`;
+    })
+    .join('\n\n');
+
+  return `${basePrompt}
+
+---
+VERIFIED KNOWLEDGE BASE (Use this information with priority when answering):
+${kbSection}
+---
+
+When a visitor asks something covered in the knowledge base above, always use that exact information in your answer. Do NOT contradict the knowledge base.`;
+}
 
 // Hardcoded fallback responses for common intents
 function getSmartFallback(query: string): string {
@@ -113,7 +141,8 @@ export async function POST(request: Request) {
       });
     }
 
-    // Step 2: Try AI (if API key is configured)
+    // Step 2: Build dynamic prompt and try AI (if API key is configured)
+    const dynamicPrompt = buildSystemPrompt(knowledgeBase);
     const openaiKey = process.env.OPENAI_API_KEY;
     const geminiKey = process.env.GEMINI_API_KEY;
 
@@ -128,7 +157,7 @@ export async function POST(request: Request) {
           body: JSON.stringify({
             model: 'gpt-3.5-turbo',
             messages: [
-              { role: 'system', content: SALON_SYSTEM_PROMPT },
+              { role: 'system', content: dynamicPrompt },
               { role: 'user', content: message },
             ],
             max_tokens: 200,
@@ -159,7 +188,7 @@ export async function POST(request: Request) {
               contents: [
                 {
                   parts: [
-                    { text: `${SALON_SYSTEM_PROMPT}\n\nCustomer: ${message}` },
+                    { text: `${dynamicPrompt}\n\nCustomer: ${message}` },
                   ],
                 },
               ],
