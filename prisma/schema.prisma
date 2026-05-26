@@ -1,0 +1,108 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("admin")
+  createdAt DateTime @default(now())
+}
+
+model Service {
+  id               String   @id @default(uuid())
+  title            String
+  slug             String   @unique
+  description      String
+  duration         Int      // in minutes
+  pricing          Float    // in NPR
+  category         String   // hair, facial, bridal, nails, spa, skin, eyebrow-lash, massage, etc.
+  benefits         String   // newline-separated benefits
+  faqs             String   // JSON-serialized string of question/answer pairs
+  featured         Boolean  @default(false)
+  image            String
+  beforeAfterImage String?  // Optional before/after image path
+}
+
+model Product {
+  id             String   @id @default(uuid())
+  title          String
+  brand          String
+  description    String
+  ingredients    String
+  instructions   String
+  recommendation String
+  category       String   // skincare, haircare, makeup, spa, tools
+  image          String
+  featured       Boolean  @default(false)
+}
+
+model Appointment {
+  id            String   @id @default(uuid())
+  customerName  String
+  customerEmail String
+  customerPhone String
+  serviceId     String
+  serviceTitle  String
+  stylistId     String
+  stylistName   String
+  dateTime      DateTime
+  status        String   @default("pending") // pending, confirmed, completed, cancelled
+  notes         String?
+  createdAt     DateTime @default(now())
+}
+
+model Inquiry {
+  id            String   @id @default(uuid())
+  customerName  String
+  customerEmail String
+  customerPhone String
+  type          String   // service, product, bridal, collab, general
+  itemId        String?  // ID of service or product inquired
+  itemTitle     String?  // Title of service or product
+  details       String
+  status        String   @default("pending") // pending, resolved
+  createdAt     DateTime @default(now())
+}
+
+model Stylist {
+  id             String   @id @default(uuid())
+  name           String
+  specialization String
+  experience     String
+  certifications String   // comma-separated
+  socials        String   // comma-separated keys/values (e.g. instagram:url,facebook:url)
+  image          String
+  featured       Boolean  @default(false)
+}
+
+model BlogPost {
+  id        String   @id @default(uuid())
+  title     String
+  slug      String   @unique
+  content   String   // markdown content
+  excerpt   String
+  category  String
+  author    String
+  image     String
+  published Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Review {
+  id           String   @id @default(uuid())
+  customerName String
+  rating       Int
+  serviceType  String
+  text         String
+  image        String?
+  status       String   @default("pending") // pending, approved
+  createdAt    DateTime @default(now())
+}
