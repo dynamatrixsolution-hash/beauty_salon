@@ -1,39 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Sparkles, Heart, HelpCircle, ArrowRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Sparkles, Heart, HelpCircle, ArrowRight, Loader2 } from 'lucide-react';
 import BeforeAfterSlider from '@/components/ui/BeforeAfterSlider';
 import Link from 'next/link';
-
-const TRANSFORMATIONS = [
-  {
-    title: 'Korean Hydra-Glow Facial',
-    category: 'skin',
-    desc: 'Targeting dry patches, dullness and fine lines with clinical-grade active serum infusions.',
-    beforeImg: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=600&auto=format&fit=crop',
-    afterImg: 'https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?q=80&w=600&auto=format&fit=crop',
-    beforeLabel: 'Dull Skin',
-    afterLabel: 'Glass Skin Results',
-  },
-  {
-    title: 'Ash Brown Balayage & Cut',
-    category: 'hair',
-    desc: 'Bespoke hand-painted highlights, restoring structural integrity with Plex bond builders.',
-    beforeImg: 'https://images.unsplash.com/photo-1562322140-8baeececf3df?q=80&w=600&auto=format&fit=crop',
-    afterImg: 'https://images.unsplash.com/photo-1605497746444-12961b4777a0?q=80&w=600&auto=format&fit=crop',
-    beforeLabel: 'Frizzy / Solid Tone',
-    afterLabel: 'Seamless Balayage',
-  },
-  {
-    title: 'Bridal HD Airbrush Makeup',
-    category: 'makeup',
-    desc: 'Flawless 18-hour waterproof finish, covering blemishes with lightweight light-diffusing base.',
-    beforeImg: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=600&auto=format&fit=crop',
-    afterImg: 'https://images.unsplash.com/photo-1481824429379-07aa5e5b0739?q=80&w=600&auto=format&fit=crop',
-    beforeLabel: 'Natural Skin',
-    afterLabel: 'Bridal Glamour',
-  },
-];
 
 const GALLERY_PHOTOS = [
   { url: 'https://images.unsplash.com/photo-1604654894610-df63bc536371?q=80&w=400&auto=format&fit=crop', tag: 'Nail Art' },
@@ -44,8 +14,27 @@ const GALLERY_PHOTOS = [
 
 export default function GalleryPage() {
   const [filter, setFilter] = useState('all');
+  const [transformations, setTransformations] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredTrans = TRANSFORMATIONS.filter(
+  useEffect(() => {
+    const fetchTransformations = async () => {
+      try {
+        const res = await fetch('/api/transformations');
+        const data = await res.json();
+        if (data.success) {
+          setTransformations(data.data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch transformations:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTransformations();
+  }, []);
+
+  const filteredTrans = transformations.filter(
     (t) => filter === 'all' || t.category === filter
   );
 
@@ -85,24 +74,37 @@ export default function GalleryPage() {
           ))}
         </div>
 
-        {/* Sliders Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
-          {filteredTrans.map((trans, idx) => (
-            <div key={idx} className="flex flex-col gap-4 text-left">
-              <BeforeAfterSlider
-                beforeImage={trans.beforeImg}
-                afterImage={trans.afterImg}
-                beforeLabel={trans.beforeLabel}
-                afterLabel={trans.afterLabel}
-              />
-              <div className="flex flex-col gap-1.5 px-2">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-brand-rosegold-dark">{trans.category} Treatment</span>
-                <h3 className="font-serif text-xl text-brand-charcoal">{trans.title}</h3>
-                <p className="text-xs text-brand-charcoal/60 leading-relaxed font-light">{trans.desc}</p>
+        {/* Sliders Grid or Loading Shimmer */}
+        {loading ? (
+          <div className="flex flex-col items-center justify-center py-20 gap-4">
+            <Loader2 className="w-8 h-8 text-brand-rosegold-dark animate-spin" />
+            <p className="text-brand-charcoal/50 text-sm font-sans">Loading transformations...</p>
+          </div>
+        ) : filteredTrans.length === 0 ? (
+          <div className="text-center py-20 text-brand-charcoal/40 font-serif">
+            No transformations found in this category yet.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
+            {filteredTrans.map((trans, idx) => (
+              <div key={idx} className="flex flex-col gap-4 text-left">
+                <BeforeAfterSlider
+                  beforeImage={trans.beforeImg}
+                  afterImage={trans.afterImg}
+                  beforeLabel={trans.beforeLabel || 'Before'}
+                  afterLabel={trans.afterLabel || 'After'}
+                />
+                <div className="flex flex-col gap-1.5 px-2">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-brand-rosegold-dark">
+                    {trans.category === 'skin' ? 'Skincare' : trans.category === 'hair' ? 'Hair Care' : 'Bridal Makeup'} Treatment
+                  </span>
+                  <h3 className="font-serif text-xl text-brand-charcoal">{trans.title}</h3>
+                  <p className="text-xs text-brand-charcoal/60 leading-relaxed font-light">{trans.desc}</p>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
 
         {/* Secondary Gallery Grid */}
         <div className="flex flex-col gap-8 pt-16 border-t border-brand-pink-accent/20">

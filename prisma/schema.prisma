@@ -115,3 +115,15 @@ model AIKnowledgeBase {
   isPriority  Boolean  @default(true)
   createdAt   DateTime @default(now())
 }
+
+model Transformation {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  category    String   // skin, hair, makeup
+  desc        String
+  beforeImg   String
+  afterImg    String
+  beforeLabel String   @default("Before")
+  afterLabel  String   @default("After")
+  createdAt   DateTime @default(now())
+}

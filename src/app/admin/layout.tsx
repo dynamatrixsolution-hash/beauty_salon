@@ -30,6 +30,7 @@ const SIDEBAR_ITEMS = [
   { href: '/admin/products', label: 'Products', icon: Package },
   { href: '/admin/blog', label: 'Blog Posts', icon: FileText },
   { href: '/admin/concierge', label: 'AI Concierge', icon: Brain },
+  { href: '/admin/transformations', label: 'Transformations', icon: Sparkles },
 ];
 
 function AdminLayoutInner({ children }: { children: React.ReactNode }) {

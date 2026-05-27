@@ -15,6 +15,7 @@ async function main() {
   await prisma.stylist.deleteMany({});
   await prisma.blogPost.deleteMany({});
   await prisma.review.deleteMany({});
+  await prisma.transformation.deleteMany({});
 
   // 2. Create Admin User
   const adminPassword = bcryptjs.hashSync('admin', 10);
@@ -412,6 +413,42 @@ Since the keratin treatment makes your hair naturally straight and quick to dry,
     await prisma.blogPost.create({ data: b });
   }
   console.log('Blog posts seeded.');
+
+  // 8. Create Transformations
+  const transformations = [
+    {
+      title: 'Korean Hydra-Glow Facial',
+      category: 'skin',
+      desc: 'Targeting dry patches, dullness and fine lines with clinical-grade active serum infusions.',
+      beforeImg: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=600&auto=format&fit=crop',
+      afterImg: 'https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?q=80&w=600&auto=format&fit=crop',
+      beforeLabel: 'Dull Skin',
+      afterLabel: 'Glass Skin Results',
+    },
+    {
+      title: 'Ash Brown Balayage & Cut',
+      category: 'hair',
+      desc: 'Bespoke hand-painted highlights, restoring structural integrity with Plex bond builders.',
+      beforeImg: 'https://images.unsplash.com/photo-1562322140-8baeececf3df?q=80&w=600&auto=format&fit=crop',
+      afterImg: 'https://images.unsplash.com/photo-1605497746444-12961b4777a0?q=80&w=600&auto=format&fit=crop',
+      beforeLabel: 'Frizzy / Solid Tone',
+      afterLabel: 'Seamless Balayage',
+    },
+    {
+      title: 'Bridal HD Airbrush Makeup',
+      category: 'makeup',
+      desc: 'Flawless 18-hour waterproof finish, covering blemishes with lightweight light-diffusing base.',
+      beforeImg: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=600&auto=format&fit=crop',
+      afterImg: 'https://images.unsplash.com/photo-1481824429379-07aa5e5b0739?q=80&w=600&auto=format&fit=crop',
+      beforeLabel: 'Natural Skin',
+      afterLabel: 'Bridal Glamour',
+    },
+  ];
+
+  for (const t of transformations) {
+    await prisma.transformation.create({ data: t });
+  }
+  console.log('Transformations seeded.');
 
   console.log('Database seeding completed successfully!');
 }
