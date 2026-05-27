@@ -1,5 +1,5 @@
 {
-  "salon_status_override": "auto",
-  "auto_open_hour": 9,
+  "salon_status_override": "open",
+  "auto_open_hour": 10,
   "auto_close_hour": 20
 }

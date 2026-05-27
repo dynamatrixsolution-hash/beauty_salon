@@ -14,6 +14,7 @@ import {
   Save,
 } from 'lucide-react';
 import ConfirmModal from '@/components/ui/ConfirmModal';
+import ImageUploadField from '@/components/admin/ImageUploadField';
 
 const CATEGORIES = ['skincare', 'haircare', 'makeup', 'spa', 'tools'];
 
@@ -38,6 +39,7 @@ export default function AdminProductsPage() {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
   
   // Custom Confirmation Dialog State
   const [productToDelete, setProductToDelete] = useState<string | null>(null);
@@ -82,6 +84,17 @@ export default function AdminProductsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (uploadingImage) {
+      alert('Please wait for the image to finish uploading.');
+      return;
+    }
+
+    if (!form.image) {
+      alert('Please upload an image.');
+      return;
+    }
+
     setSaving(true);
 
     try {
@@ -168,60 +181,66 @@ export default function AdminProductsPage() {
           <p className="text-white/30 font-sans">No products yet</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           {products.map((product, idx) => (
             <motion.div
               key={product.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: idx * 0.05 }}
-              className="bg-white/[0.03] rounded-2xl border border-white/[0.06] overflow-hidden group"
+              className="group rounded-2xl border border-white/[0.06] bg-white/[0.03] p-4 transition-colors hover:bg-white/[0.05]"
             >
-              <div className="relative aspect-square overflow-hidden bg-white/[0.02]">
-                <img
-                  src={product.image}
-                  alt={product.title}
-                  className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
-                />
-                {product.featured && (
-                  <div className="absolute top-3 left-3 flex items-center gap-1 bg-brand-gold/90 text-brand-charcoal-dark text-[9px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full">
-                    <Star className="w-3 h-3" />
-                    Featured
+              <div className="flex gap-4">
+                <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.04]">
+                  <img
+                    src={product.image}
+                    alt={product.title}
+                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  />
+                </div>
+
+                <div className="flex min-w-0 flex-1 flex-col justify-between gap-3">
+                  <div className="min-w-0 space-y-2">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="rounded-full bg-white/[0.06] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white/50">
+                        {product.category}
+                      </span>
+                      {product.featured && (
+                        <span className="flex items-center gap-1 rounded-full bg-brand-gold/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-brand-gold">
+                          <Star className="h-3 w-3" />
+                          Featured
+                        </span>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-white/30 font-sans">
+                        {product.brand}
+                      </p>
+                      <h3 className="mt-0.5 truncate font-serif text-base font-semibold text-white">
+                        {product.title}
+                      </h3>
+                      <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-white/40 font-sans">
+                        {product.description}
+                      </p>
+                    </div>
                   </div>
-                )}
-                <div className="absolute top-3 right-3 bg-white/10 backdrop-blur-sm text-white text-[10px] font-semibold uppercase tracking-wider px-2.5 py-1 rounded-full">
-                  {product.category}
-                </div>
-              </div>
 
-              <div className="p-4 space-y-3">
-                <div>
-                  <p className="text-white/30 text-[10px] font-bold uppercase tracking-widest font-sans">
-                    {product.brand}
-                  </p>
-                  <h3 className="text-white font-serif text-base font-semibold mt-0.5">
-                    {product.title}
-                  </h3>
-                  <p className="text-white/40 text-xs line-clamp-2 mt-1 font-sans">
-                    {product.description}
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2 pt-2 border-t border-white/[0.06]">
-                  <button
-                    onClick={() => openEditForm(product)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.05] text-white/60 hover:text-white hover:bg-white/[0.08] transition-colors text-xs font-medium cursor-pointer"
-                  >
-                    <Pencil className="w-3 h-3" />
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => setProductToDelete(product.id)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 transition-colors text-xs font-medium cursor-pointer"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                    Delete
-                  </button>
+                  <div className="flex items-center gap-2 border-t border-white/[0.06] pt-3">
+                    <button
+                      onClick={() => openEditForm(product)}
+                      className="flex cursor-pointer items-center gap-1.5 rounded-lg bg-white/[0.05] px-3 py-1.5 text-xs font-medium text-white/60 transition-colors hover:bg-white/[0.08] hover:text-white"
+                    >
+                      <Pencil className="h-3 w-3" />
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => setProductToDelete(product.id)}
+                      className="flex cursor-pointer items-center gap-1.5 rounded-lg bg-rose-500/10 px-3 py-1.5 text-xs font-medium text-rose-400 transition-colors hover:bg-rose-500/20"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                      Delete
+                    </button>
+                  </div>
                 </div>
               </div>
             </motion.div>
@@ -351,15 +370,12 @@ export default function AdminProductsPage() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-white/50 uppercase tracking-wider mb-2">
-                      Image URL *
-                    </label>
-                    <input
-                      type="url"
+                    <ImageUploadField
+                      label="Image"
                       value={form.image}
-                      onChange={(e) => setForm({ ...form, image: e.target.value })}
+                      onChange={(url) => setForm({ ...form, image: url })}
+                      onUploadingChange={setUploadingImage}
                       required
-                      className="w-full bg-white/[0.05] border border-white/[0.08] text-white px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-brand-rosegold/50 transition-colors"
                     />
                   </div>
                 </div>

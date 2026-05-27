@@ -16,6 +16,7 @@ import {
   Globe,
 } from 'lucide-react';
 import ConfirmModal from '@/components/ui/ConfirmModal';
+import ImageUploadField from '@/components/admin/ImageUploadField';
 
 const emptyForm = {
   name: '',
@@ -36,6 +37,7 @@ export default function AdminStylistsPage() {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
   
   // Custom Confirmation Dialog State
   const [stylistToDelete, setStylistToDelete] = useState<string | null>(null);
@@ -78,6 +80,17 @@ export default function AdminStylistsPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (uploadingImage) {
+      alert('Please wait for the image to finish uploading.');
+      return;
+    }
+
+    if (!form.image) {
+      alert('Please upload an image.');
+      return;
+    }
+
     setSaving(true);
 
     try {
@@ -361,20 +374,13 @@ export default function AdminStylistsPage() {
                   />
                 </div>
 
-                {/* Image URL */}
-                <div>
-                  <label className="block text-xs font-medium text-white/50 uppercase tracking-wider mb-2">
-                    Image URL *
-                  </label>
-                  <input
-                    type="url"
-                    value={form.image}
-                    onChange={(e) => setForm({ ...form, image: e.target.value })}
-                    required
-                    className="w-full bg-white/[0.05] border border-white/[0.08] text-white px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-brand-rosegold/50 transition-colors"
-                    placeholder="https://images.unsplash.com/..."
-                  />
-                </div>
+                <ImageUploadField
+                  label="Image"
+                  value={form.image}
+                  onChange={(url) => setForm({ ...form, image: url })}
+                  onUploadingChange={setUploadingImage}
+                  required
+                />
 
                 {/* Featured toggle */}
                 <label className="flex items-center gap-3 cursor-pointer">
