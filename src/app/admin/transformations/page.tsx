@@ -34,7 +34,11 @@ export default function AdminTransformationsPage() {
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
-  
+  const [beforePreview, setBeforePreview] = useState<string | null>(null);
+  const [afterPreview, setAfterPreview] = useState<string | null>(null);
+  const [uploadingBefore, setUploadingBefore] = useState(false);
+  const [uploadingAfter, setUploadingAfter] = useState(false);
+
   // Custom Confirmation Dialog State
   const [itemToDelete, setItemToDelete] = useState<string | null>(null);
 
@@ -56,6 +60,8 @@ export default function AdminTransformationsPage() {
 
   const openNewForm = () => {
     setForm(emptyForm);
+    setBeforePreview(null);
+    setAfterPreview(null);
     setEditingId(null);
     setShowForm(true);
   };
@@ -70,12 +76,77 @@ export default function AdminTransformationsPage() {
       beforeLabel: trans.beforeLabel || 'Before',
       afterLabel: trans.afterLabel || 'After',
     });
+    setBeforePreview(trans.beforeImg);
+    setAfterPreview(trans.afterImg);
     setEditingId(trans.id);
     setShowForm(true);
   };
 
+  const uploadImage = async (file: File, type: 'before' | 'after') => {
+    const setUploading = type === 'before' ? setUploadingBefore : setUploadingAfter;
+    setUploading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const res = await fetch('/api/upload', { method: 'POST', body: formData });
+      const data = await res.json();
+
+      if (!data.success) {
+        alert(data.error || 'Failed to upload image');
+        return;
+      }
+
+      if (type === 'before') {
+        setForm((prev) => ({ ...prev, beforeImg: data.url }));
+        setBeforePreview(data.url);
+      } else {
+        setForm((prev) => ({ ...prev, afterImg: data.url }));
+        setAfterPreview(data.url);
+      }
+    } catch (error) {
+      console.error('Failed to upload image:', error);
+      alert('Failed to upload image. Please try again.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleImageSelect = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    type: 'before' | 'after'
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file.');
+      e.target.value = '';
+      return;
+    }
+
+    const previewUrl = URL.createObjectURL(file);
+    if (type === 'before') setBeforePreview(previewUrl);
+    else setAfterPreview(previewUrl);
+
+    uploadImage(file, type);
+    e.target.value = '';
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (uploadingBefore || uploadingAfter) {
+      alert('Please wait for images to finish uploading.');
+      return;
+    }
+
+    if (!form.beforeImg || !form.afterImg) {
+      alert('Please upload both before and after images.');
+      return;
+    }
+
     setSaving(true);
 
     try {
@@ -96,6 +167,8 @@ export default function AdminTransformationsPage() {
         setShowForm(false);
         setEditingId(null);
         setForm(emptyForm);
+        setBeforePreview(null);
+        setAfterPreview(null);
       } else {
         alert(data.error || 'Failed to save transformation');
       }
@@ -164,76 +237,79 @@ export default function AdminTransformationsPage() {
           <p className="text-white/30">No transformations added yet</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           {transformations.map((trans, idx) => (
             <motion.div
               key={trans.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: idx * 0.05 }}
-              className="bg-white/[0.03] rounded-2xl border border-white/[0.06] overflow-hidden group flex flex-col justify-between"
+              className="group rounded-2xl border border-white/[0.06] bg-white/[0.03] p-4 transition-colors hover:bg-white/[0.05]"
             >
-              <div>
-                {/* Images Preview side by side */}
-                <div className="grid grid-cols-2 gap-0.5 relative aspect-[16/10] overflow-hidden bg-white/[0.02] border-b border-white/[0.06]">
-                  <div className="relative h-full w-full">
+              <div className="flex gap-4">
+                <div className="grid h-24 w-28 shrink-0 grid-cols-2 gap-1 overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.04]">
+                  <div className="relative overflow-hidden">
                     <img
                       src={trans.beforeImg}
                       alt="Before"
-                      className="w-full h-full object-cover opacity-80"
+                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
-                    <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-sm text-white text-[8px] font-bold tracking-widest uppercase px-2 py-1 rounded">
+                    <span className="absolute bottom-1 left-1 rounded bg-black/60 px-1.5 py-0.5 text-[7px] font-bold uppercase tracking-wider text-white backdrop-blur-sm">
                       {trans.beforeLabel || 'Before'}
-                    </div>
+                    </span>
                   </div>
-                  <div className="relative h-full w-full">
+                  <div className="relative overflow-hidden">
                     <img
                       src={trans.afterImg}
                       alt="After"
-                      className="w-full h-full object-cover opacity-80"
+                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                     />
-                    <div className="absolute bottom-2 right-2 bg-brand-rosegold/90 text-brand-charcoal-dark text-[8px] font-bold tracking-widest uppercase px-2 py-1 rounded">
+                    <span className="absolute bottom-1 right-1 rounded bg-brand-rosegold/90 px-1.5 py-0.5 text-[7px] font-bold uppercase tracking-wider text-brand-charcoal-dark">
                       {trans.afterLabel || 'After'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex min-w-0 flex-1 flex-col justify-between gap-3">
+                  <div className="min-w-0 space-y-2">
+                    <span className="inline-block rounded-full bg-brand-rosegold/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-brand-rosegold">
+                      {trans.category === 'skin'
+                        ? 'Skincare'
+                        : trans.category === 'hair'
+                          ? 'Hair Care'
+                          : 'Bridal Makeup'}
+                    </span>
+                    <div>
+                      <h3 className="truncate font-serif text-base font-semibold text-white">
+                        {trans.title}
+                      </h3>
+                      <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-white/40">
+                        {trans.desc}
+                      </p>
                     </div>
                   </div>
-                  <div className="absolute top-3 left-3 bg-brand-charcoal/90 text-brand-rosegold text-[9px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-full border border-white/[0.06]">
-                    {trans.category === 'skin' ? 'Skincare' : trans.category === 'hair' ? 'Hair Care' : 'Bridal Makeup'}
+
+                  <div className="flex items-center gap-2 border-t border-white/[0.06] pt-3">
+                    <button
+                      onClick={() => openEditForm(trans)}
+                      className="flex cursor-pointer items-center gap-1.5 rounded-lg bg-white/[0.05] px-3 py-1.5 text-xs font-medium text-white/60 transition-colors hover:bg-white/[0.08] hover:text-white"
+                    >
+                      <Pencil className="h-3 w-3" />
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => setItemToDelete(trans.id)}
+                      disabled={deleting === trans.id}
+                      className="flex cursor-pointer items-center gap-1.5 rounded-lg bg-rose-500/10 px-3 py-1.5 text-xs font-medium text-rose-400 transition-colors hover:bg-rose-500/20 disabled:opacity-50"
+                    >
+                      {deleting === trans.id ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-3 w-3" />
+                      )}
+                      Remove
+                    </button>
                   </div>
-                </div>
-
-                {/* Info */}
-                <div className="p-5 space-y-2">
-                  <h3 className="text-white font-serif text-lg font-semibold">
-                    {trans.title}
-                  </h3>
-                  <p className="text-white/60 text-xs leading-relaxed line-clamp-2">
-                    {trans.desc}
-                  </p>
-                </div>
-              </div>
-
-              {/* Actions */}
-              <div className="p-5 pt-0">
-                <div className="flex items-center gap-2 pt-3 border-t border-white/[0.06]">
-                  <button
-                    onClick={() => openEditForm(trans)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.05] text-white/60 hover:text-white hover:bg-white/[0.08] transition-colors text-xs font-medium cursor-pointer"
-                  >
-                    <Pencil className="w-3 h-3" />
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => setItemToDelete(trans.id)}
-                    disabled={deleting === trans.id}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-500/10 text-rose-400 hover:bg-rose-500/20 transition-colors text-xs font-medium cursor-pointer disabled:opacity-50"
-                  >
-                    {deleting === trans.id ? (
-                      <Loader2 className="w-3 h-3 animate-spin" />
-                    ) : (
-                      <Trash2 className="w-3 h-3" />
-                    )}
-                    Remove
-                  </button>
                 </div>
               </div>
             </motion.div>
@@ -321,16 +397,38 @@ export default function AdminTransformationsPage() {
                   <div className="md:col-span-2">
                     <label className="block text-xs font-medium text-white/50 uppercase tracking-wider mb-2 flex items-center gap-1">
                       <ImageIcon className="w-3.5 h-3.5" />
-                      Before Image URL *
+                      Before Image *
                     </label>
-                    <input
-                      type="url"
-                      value={form.beforeImg}
-                      onChange={(e) => setForm({ ...form, beforeImg: e.target.value })}
-                      required
-                      className="w-full bg-white/[0.05] border border-white/[0.08] text-white px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-brand-rosegold/50 transition-colors"
-                      placeholder="https://images.unsplash.com/..."
-                    />
+                    <div className="space-y-3">
+                      {beforePreview && (
+                        <div className="relative aspect-video w-full max-w-xs overflow-hidden rounded-xl border border-white/[0.08]">
+                          <img
+                            src={beforePreview}
+                            alt="Before preview"
+                            className="h-full w-full object-cover"
+                          />
+                        </div>
+                      )}
+                      <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-white/[0.15] bg-white/[0.03] px-4 py-3 text-sm text-white/60 transition-colors hover:border-brand-rosegold/40 hover:bg-white/[0.05] hover:text-white/80">
+                        {uploadingBefore ? (
+                          <Loader2 className="h-4 w-4 animate-spin text-brand-rosegold" />
+                        ) : (
+                          <ImageIcon className="h-4 w-4" />
+                        )}
+                        {uploadingBefore
+                          ? 'Uploading...'
+                          : beforePreview
+                            ? 'Replace before image'
+                            : 'Choose before image from device'}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          disabled={uploadingBefore}
+                          onChange={(e) => handleImageSelect(e, 'before')}
+                        />
+                      </label>
+                    </div>
                   </div>
                   <div className="md:col-span-1">
                     <label className="block text-xs font-medium text-white/50 uppercase tracking-wider mb-2">
@@ -352,16 +450,38 @@ export default function AdminTransformationsPage() {
                   <div className="md:col-span-2">
                     <label className="block text-xs font-medium text-white/50 uppercase tracking-wider mb-2 flex items-center gap-1">
                       <ImageIcon className="w-3.5 h-3.5 animate-pulse" />
-                      After Image URL *
+                      After Image *
                     </label>
-                    <input
-                      type="url"
-                      value={form.afterImg}
-                      onChange={(e) => setForm({ ...form, afterImg: e.target.value })}
-                      required
-                      className="w-full bg-white/[0.05] border border-white/[0.08] text-white px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-brand-rosegold/50 transition-colors"
-                      placeholder="https://images.unsplash.com/..."
-                    />
+                    <div className="space-y-3">
+                      {afterPreview && (
+                        <div className="relative aspect-video w-full max-w-xs overflow-hidden rounded-xl border border-white/[0.08]">
+                          <img
+                            src={afterPreview}
+                            alt="After preview"
+                            className="h-full w-full object-cover"
+                          />
+                        </div>
+                      )}
+                      <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-white/[0.15] bg-white/[0.03] px-4 py-3 text-sm text-white/60 transition-colors hover:border-brand-rosegold/40 hover:bg-white/[0.05] hover:text-white/80">
+                        {uploadingAfter ? (
+                          <Loader2 className="h-4 w-4 animate-spin text-brand-rosegold" />
+                        ) : (
+                          <ImageIcon className="h-4 w-4" />
+                        )}
+                        {uploadingAfter
+                          ? 'Uploading...'
+                          : afterPreview
+                            ? 'Replace after image'
+                            : 'Choose after image from device'}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          disabled={uploadingAfter}
+                          onChange={(e) => handleImageSelect(e, 'after')}
+                        />
+                      </label>
+                    </div>
                   </div>
                   <div className="md:col-span-1">
                     <label className="block text-xs font-medium text-white/50 uppercase tracking-wider mb-2">
