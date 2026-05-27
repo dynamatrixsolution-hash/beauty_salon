@@ -42,8 +42,9 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${cormorant.variable} ${poppins.variable} h-full scroll-smooth antialiased`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col bg-brand-beige text-brand-charcoal selection:bg-brand-pink-accent selection:text-brand-charcoal-dark">
+      <body suppressHydrationWarning className="min-h-full flex flex-col bg-brand-beige text-brand-charcoal selection:bg-brand-pink-accent selection:text-brand-charcoal-dark">
         <Navbar />
         <main className="flex-grow">{children}</main>
         <Footer />
