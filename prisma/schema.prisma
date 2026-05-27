@@ -1,5 +1,5 @@
 datasource db {
-  provider = "sqlite"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
@@ -8,7 +8,7 @@ generator client {
 }
 
 model User {
-  id        String   @id @default(uuid())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   name      String
   email     String   @unique
   password  String
@@ -17,7 +17,7 @@ model User {
 }
 
 model Service {
-  id               String   @id @default(uuid())
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
   title            String
   slug             String   @unique
   description      String
@@ -32,7 +32,7 @@ model Service {
 }
 
 model Product {
-  id             String   @id @default(uuid())
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
   title          String
   brand          String
   description    String
@@ -45,7 +45,7 @@ model Product {
 }
 
 model Appointment {
-  id            String   @id @default(uuid())
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
   customerName  String
   customerEmail String
   customerPhone String
@@ -60,7 +60,7 @@ model Appointment {
 }
 
 model Inquiry {
-  id            String   @id @default(uuid())
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
   customerName  String
   customerEmail String
   customerPhone String
@@ -73,7 +73,7 @@ model Inquiry {
 }
 
 model Stylist {
-  id             String   @id @default(uuid())
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
   name           String
   specialization String
   experience     String
@@ -84,7 +84,7 @@ model Stylist {
 }
 
 model BlogPost {
-  id        String   @id @default(uuid())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   title     String
   slug      String   @unique
   content   String   // markdown content
@@ -97,7 +97,7 @@ model BlogPost {
 }
 
 model Review {
-  id           String   @id @default(uuid())
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
   customerName String
   rating       Int
   serviceType  String
@@ -108,7 +108,7 @@ model Review {
 }
 
 model AIKnowledgeBase {
-  id          String   @id @default(uuid())
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
   question    String
   answer      String
   category    String

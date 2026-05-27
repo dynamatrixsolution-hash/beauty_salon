@@ -250,21 +250,13 @@ export default function HomeClient({
           >
             <span className="relative flex h-2 w-2">
               <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${salonStatus.isOpen ? 'bg-emerald-400' : 'bg-amber-400'}`}></span>
-              <span className={`relative inline-flex rounded-full h-2 w-2 ${salonStatus.isOpen ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
+              <span className={`relative inline-flex rounded-full h-2 w-2 ${salonStatus.isOpen ? 'bg-emerald-500' : 'bg-emerald-500'}`}></span>
             </span>
             <span>
               {salonStatus.isOpen ? (
                 <>SALON OPEN • {salonStatus.kathmanduTimeStr}</>
               ) : (
                 <>SALON CLOSED • {salonStatus.kathmanduTimeStr} (Opens {salonStatus.openHour % 12 || 12} {salonStatus.openHour >= 12 ? 'PM' : 'AM'})</>
-              )}
-            </span>
-            <span className="w-1.5 h-1.5 rounded-full bg-brand-beige/25"></span>
-            <span className="text-brand-rosegold font-bold uppercase">
-              {salonStatus.isOpen && salonStatus.slotsRemaining > 0 ? (
-                `Only ${salonStatus.slotsRemaining} VIP Slots Left Today`
-              ) : (
-                "Booking open for tomorrow"
               )}
             </span>
           </motion.div>
