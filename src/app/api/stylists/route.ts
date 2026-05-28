@@ -6,7 +6,7 @@ import { authOptions } from '@/lib/auth';
 // 1. Fetch Stylists (Public)
 export async function GET() {
   try {
-    const stylists = await prisma.stylist.findMany({
+    const stylists = await prisma.staff.findMany({
       orderBy: { name: 'asc' },
     });
     return NextResponse.json({ success: true, data: stylists });
@@ -30,7 +30,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing required stylist fields' }, { status: 400 });
     }
 
-    const newStylist = await prisma.stylist.create({
+    const newStylist = await prisma.staff.create({
       data: {
         name,
         specialization,
@@ -72,7 +72,7 @@ export async function PUT(req: Request) {
     if (image) updateData.image = image;
     if (featured !== undefined) updateData.featured = !!featured;
 
-    const updatedStylist = await prisma.stylist.update({
+    const updatedStylist = await prisma.staff.update({
       where: { id },
       data: updateData,
     });
@@ -99,7 +99,7 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ error: 'Stylist ID is required' }, { status: 400 });
     }
 
-    await prisma.stylist.delete({
+    await prisma.staff.delete({
       where: { id },
     });
 

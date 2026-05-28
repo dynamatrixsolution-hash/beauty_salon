@@ -9,7 +9,7 @@ export default async function BookPage() {
     prisma.service.findMany({
       orderBy: { title: 'asc' },
     }),
-    prisma.stylist.findMany({
+    prisma.staff.findMany({
       orderBy: { name: 'asc' },
     }),
   ]);

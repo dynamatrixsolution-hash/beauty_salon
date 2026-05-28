@@ -17,7 +17,8 @@ function generateSlug(title: string): string {
 export async function GET() {
   try {
     const services = await prisma.service.findMany({
-      orderBy: { title: 'asc' },
+      orderBy: { order: 'asc' },
+      include: { category: true }
     });
     return NextResponse.json({ success: true, data: services });
   } catch (error) {
@@ -34,9 +35,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { title, description, duration, pricing, category, benefits, faqs, featured, image } = await req.json();
+    const { title, description, duration, pricing, categoryId, benefits, faqs, featured, image, tags, isActive } = await req.json();
 
-    if (!title || !description || !duration || !pricing || !category || !image) {
+    if (!title || !description || !duration || !pricing || !categoryId || !image) {
       return NextResponse.json({ error: 'Missing required service fields' }, { status: 400 });
     }
 
@@ -55,10 +56,12 @@ export async function POST(req: Request) {
         description,
         duration: parseInt(duration),
         pricing: parseFloat(pricing),
-        category,
+        categoryId,
         benefits: benefits || '',
         faqs: faqs || '[]',
         featured: !!featured,
+        isActive: isActive !== undefined ? isActive : true,
+        tags: tags || [],
         image,
       },
     });
@@ -78,7 +81,7 @@ export async function PUT(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { id, title, description, duration, pricing, category, benefits, faqs, featured, image, beforeAfterImage } = await req.json();
+    const { id, title, description, duration, pricing, categoryId, benefits, faqs, featured, image, beforeAfterImage, isActive, tags, order } = await req.json();
 
     if (!id) {
       return NextResponse.json({ error: 'Service ID is required' }, { status: 400 });
@@ -89,14 +92,17 @@ export async function PUT(req: Request) {
       updateData.title = title;
       updateData.slug = generateSlug(title);
     }
-    if (description) updateData.description = description;
+    if (description !== undefined) updateData.description = description;
     if (duration !== undefined) updateData.duration = parseInt(duration);
     if (pricing !== undefined) updateData.pricing = parseFloat(pricing);
-    if (category) updateData.category = category;
+    if (categoryId !== undefined) updateData.categoryId = categoryId;
     if (benefits !== undefined) updateData.benefits = benefits;
     if (faqs !== undefined) updateData.faqs = faqs;
     if (featured !== undefined) updateData.featured = !!featured;
-    if (image) updateData.image = image;
+    if (isActive !== undefined) updateData.isActive = !!isActive;
+    if (tags !== undefined) updateData.tags = tags;
+    if (order !== undefined) updateData.order = parseInt(order);
+    if (image !== undefined) updateData.image = image;
     if (beforeAfterImage !== undefined) updateData.beforeAfterImage = beforeAfterImage;
 
     const updatedService = await prisma.service.update({
