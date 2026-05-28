@@ -40,8 +40,6 @@ export async function POST(req: Request) {
       customerPhone,
       serviceId,
       serviceTitle,
-      stylistId,
-      stylistName,
       dateTime,
       notes,
     } = await req.json();
@@ -52,8 +50,6 @@ export async function POST(req: Request) {
       !customerPhone ||
       !serviceId ||
       !serviceTitle ||
-      !stylistId ||
-      !stylistName ||
       !dateTime
     ) {
       return NextResponse.json(
@@ -72,7 +68,6 @@ export async function POST(req: Request) {
       data: {
         serviceId,
         serviceTitle,
-        staffId: stylistId === 'any' ? null : stylistId,
         dateTime: parsedDate,
         status: 'pending', // Default status is pending
         notes: notes || '',
@@ -90,7 +85,10 @@ export async function POST(req: Request) {
       },
     });
 
-    return NextResponse.json({ success: true, data: toClientAppointment(appointment, stylistName) });
+    return NextResponse.json({
+      success: true,
+      data: toClientAppointment(appointment, 'Any Available Specialist'),
+    });
   } catch (error) {
     console.error('Failed to book appointment:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

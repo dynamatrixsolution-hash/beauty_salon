@@ -10,7 +10,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 interface BookingWizardProps {
   services: any[];
-  stylists: any[];
 }
 
 const TIME_SLOTS = [
@@ -18,7 +17,7 @@ const TIME_SLOTS = [
   '02:00 PM', '03:00 PM', '04:00 PM', '05:00 PM', '06:00 PM'
 ];
 
-export default function BookingWizard({ services, stylists }: BookingWizardProps) {
+export default function BookingWizard({ services }: BookingWizardProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
   
@@ -46,7 +45,7 @@ export default function BookingWizard({ services, stylists }: BookingWizardProps
       const match = services.find(s => s.id === initialServiceId);
       if (match) {
         setSelectedService(match);
-        setStep(2); // Go directly to step 2 (stylist selection)
+        setStep(2);
       }
     }
   }, [initialServiceId, services]);
@@ -176,7 +175,7 @@ export default function BookingWizard({ services, stylists }: BookingWizardProps
             <div className="flex justify-center items-center gap-6 mt-6 text-xs font-semibold text-brand-charcoal/50">
               <span className={step === 1 ? 'text-brand-rosegold-dark font-bold' : ''}>1. Service</span>
               <span className="text-brand-charcoal/20">/</span>
-              <span className={step === 2 ? 'text-brand-rosegold-dark font-bold' : ''}>2. Stylist</span>
+              <span className={step === 2 ? 'text-brand-rosegold-dark font-bold' : ''}>2. Specialist</span>
               <span className="text-brand-charcoal/20">/</span>
               <span className={step === 3 ? 'text-brand-rosegold-dark font-bold' : ''}>3. Schedule</span>
               <span className="text-brand-charcoal/20">/</span>
@@ -232,7 +231,7 @@ export default function BookingWizard({ services, stylists }: BookingWizardProps
               </motion.div>
             )}
 
-            {/* STEP 2: Select Stylist */}
+            {/* STEP 2: Salon-assigned specialist */}
             {step === 2 && (
               <motion.div
                 key="step2"
@@ -254,12 +253,11 @@ export default function BookingWizard({ services, stylists }: BookingWizardProps
                 </div>
 
                 <div className="text-left">
-                  <h2 className="font-serif text-xl font-semibold text-brand-charcoal">Select Hair/Beauty Specialist</h2>
-                  <p className="text-xs text-brand-charcoal/60 mt-0.5 font-light">Choose an experienced professional or select first available.</p>
+                  <h2 className="font-serif text-xl font-semibold text-brand-charcoal">Salon Assigned Specialist</h2>
+                  <p className="text-xs text-brand-charcoal/60 mt-0.5 font-light">Our staff will assign the best available specialist for your selected service and slot.</p>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Any Stylist Option */}
+                <div className="grid grid-cols-1 gap-4">
                   <button
                     onClick={() => handleStylistSelect(null)}
                     className="flex items-center gap-4 p-4 rounded-2xl border border-brand-pink-accent/20 bg-white/40 hover:bg-brand-pink-medium/10 hover:border-brand-rosegold text-left cursor-pointer transition-all"
@@ -269,31 +267,9 @@ export default function BookingWizard({ services, stylists }: BookingWizardProps
                     </div>
                     <div className="flex flex-col">
                       <span className="font-semibold text-sm text-brand-charcoal">Any Available Specialist</span>
-                      <span className="text-[10px] text-brand-charcoal/50">For fast bookings and matching slot flexibility</span>
+                      <span className="text-[10px] text-brand-charcoal/50">Personal team member selection is not available online.</span>
                     </div>
                   </button>
-
-                  {/* Dynamic Stylists list */}
-                  {stylists.map((st) => (
-                    <button
-                      key={st.id}
-                      onClick={() => handleStylistSelect(st)}
-                      className="flex items-center gap-4 p-4 rounded-2xl border border-brand-pink-accent/20 bg-white/40 hover:bg-brand-pink-medium/10 hover:border-brand-rosegold text-left cursor-pointer transition-all group"
-                    >
-                      <img
-                        src={st.image}
-                        alt={st.name}
-                        className="w-12 h-12 rounded-full object-cover shrink-0 border border-brand-pink-accent/30"
-                      />
-                      <div className="flex flex-col">
-                        <span className="font-semibold text-sm text-brand-charcoal group-hover:text-brand-rosegold transition-colors">
-                          {st.name}
-                        </span>
-                        <span className="text-[10px] text-brand-rosegold-dark font-medium line-clamp-1">{st.specialization}</span>
-                        <span className="text-[9px] text-brand-charcoal/40 font-medium">Exp: {st.experience}</span>
-                      </div>
-                    </button>
-                  ))}
                 </div>
               </motion.div>
             )}

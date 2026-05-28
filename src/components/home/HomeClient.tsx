@@ -313,7 +313,8 @@ export default function HomeClient({
         </div>
       </section>
 
-      {/* 2. BRAND INTRODUCTION & PHILOSOPHY */}
+      {/* 2. BRAND INTRODUCTION & PHILOSOPHY - commented out by request */}
+      {false && (
       <section className="py-24 bg-gradient-to-b from-brand-beige to-white relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
@@ -360,6 +361,7 @@ export default function HomeClient({
           </div>
         </div>
       </section>
+      )}
 
       {/* 3. FEATURED SERVICES SECTION */}
       <section className="py-24 bg-white">
@@ -674,9 +676,9 @@ export default function HomeClient({
                     </div>
                   </div>
                   
-                  <Link href="/book" className="w-full">
+                  <Link href="/team" className="w-full">
                     <button className="w-full py-2.5 rounded-lg border border-brand-rosegold/30 hover:border-brand-rosegold hover:bg-brand-pink-light/40 text-brand-charcoal text-xs font-semibold tracking-wider uppercase transition-all duration-300 cursor-pointer">
-                      Book With {stylist.name.split(' ')[0]}
+                      View Profile
                     </button>
                   </Link>
                 </div>

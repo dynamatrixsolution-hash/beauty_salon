@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 const NAV_LINKS = [
   { href: '/', label: 'Home' },
   { href: '/services', label: 'Services' },
+  { href: '/team', label: 'Team' },
   { href: '/products', label: 'Products' },
   { href: '/bridal', label: 'Bridal' },
   { href: '/gallery', label: 'Transformations' },

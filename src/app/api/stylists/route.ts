@@ -26,7 +26,7 @@ export async function POST(req: Request) {
 
     const { name, specialization, experience, certifications, socials, image, featured } = await req.json();
 
-    if (!name || !specialization || !experience || !certifications || !image) {
+    if (!name || !specialization || !experience || !image) {
       return NextResponse.json({ error: 'Missing required stylist fields' }, { status: 400 });
     }
 
