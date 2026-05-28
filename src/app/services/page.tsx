@@ -8,6 +8,7 @@ export default async function ServicesPage() {
   const [services, categories] = await Promise.all([
     prisma.service.findMany({
       orderBy: { order: 'asc' },
+      include: { category: true }
     }),
     prisma.category.findMany({
       orderBy: { order: 'asc' },

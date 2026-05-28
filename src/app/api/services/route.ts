@@ -14,8 +14,20 @@ function generateSlug(title: string): string {
 }
 
 // 1. Fetch Services (Public)
-export async function GET() {
+export async function GET(req: Request) {
   try {
+    const url = new URL(req.url);
+    const id = url.searchParams.get('id');
+    if (id) {
+      const service = await prisma.service.findUnique({
+        where: { id },
+        include: { category: true }
+      });
+      if (!service) {
+        return NextResponse.json({ error: 'Service not found' }, { status: 404 });
+      }
+      return NextResponse.json({ success: true, data: service });
+    }
     const services = await prisma.service.findMany({
       orderBy: { order: 'asc' },
       include: { category: true }
@@ -35,9 +47,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { title, description, duration, pricing, categoryId, benefits, faqs, featured, image, tags, isActive } = await req.json();
+    const { title, description, duration, pricing, categoryId, benefits, faqs, featured, image, beforeAfterImage, tags, isActive } = await req.json();
 
-    if (!title || !description || !duration || !pricing || !categoryId || !image) {
+    if (!title || !description || !duration || !categoryId || !image) {
       return NextResponse.json({ error: 'Missing required service fields' }, { status: 400 });
     }
 
@@ -55,7 +67,7 @@ export async function POST(req: Request) {
         slug,
         description,
         duration: parseInt(duration),
-        pricing: parseFloat(pricing),
+        pricing: pricing ? parseFloat(pricing) : 0,
         categoryId,
         benefits: benefits || '',
         faqs: faqs || '[]',
@@ -63,6 +75,7 @@ export async function POST(req: Request) {
         isActive: isActive !== undefined ? isActive : true,
         tags: tags || [],
         image,
+        beforeAfterImage: beforeAfterImage || null,
       },
     });
 

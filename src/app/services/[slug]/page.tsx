@@ -11,11 +11,44 @@ interface PageProps {
   params: Promise<{ slug: string }>;
 }
 
+type ServiceFaq = {
+  question: string;
+  answer: string;
+};
+
+function normalizeFaqs(value: unknown): ServiceFaq[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map((faq) => {
+      if (!faq || typeof faq !== 'object') {
+        return null;
+      }
+
+      const item = faq as Record<string, unknown>;
+      const question = typeof item.question === 'string' ? item.question : item.q;
+      const answer = typeof item.answer === 'string' ? item.answer : item.a;
+
+      if (typeof question !== 'string' || typeof answer !== 'string') {
+        return null;
+      }
+
+      return {
+        question: question.trim(),
+        answer: answer.trim(),
+      };
+    })
+    .filter((faq): faq is ServiceFaq => !!faq?.question && !!faq.answer);
+}
+
 export default async function ServiceDetailPage({ params }: PageProps) {
   const { slug } = await params;
 
   const service = await prisma.service.findUnique({
     where: { slug },
+    include: { category: true },
   });
 
   if (!service) {
@@ -28,9 +61,9 @@ export default async function ServiceDetailPage({ params }: PageProps) {
     : [];
 
   // Parse FAQs
-  let faqsList = [];
+  let faqsList: ServiceFaq[] = [];
   try {
-    faqsList = service.faqs ? JSON.parse(service.faqs) : [];
+    faqsList = normalizeFaqs(service.faqs ? JSON.parse(service.faqs) : []);
   } catch (e) {
     console.error('Failed to parse service FAQs:', e);
   }
@@ -56,7 +89,7 @@ export default async function ServiceDetailPage({ params }: PageProps) {
             {/* Header */}
             <div className="flex flex-col gap-3">
               <span className="text-[10px] uppercase font-bold tracking-widest text-brand-rosegold-dark">
-                Signature {service.category} Ritual
+                Signature {service.category.name} Ritual
               </span>
               <h1 className="font-serif text-3xl sm:text-5xl font-light text-brand-charcoal leading-tight">
                 {service.title}
@@ -108,17 +141,17 @@ export default async function ServiceDetailPage({ params }: PageProps) {
                   Frequently Asked Questions
                 </h2>
                 <div className="flex flex-col gap-4">
-                  {faqsList.map((faq: { q: string; a: string }, idx: number) => (
+                  {faqsList.map((faq, idx) => (
                     <div
                       key={idx}
                       className="p-5 bg-white/40 rounded-xl border border-brand-pink-accent/15 flex flex-col gap-2 text-left"
                     >
                       <h4 className="text-xs sm:text-sm font-semibold text-brand-charcoal flex items-center gap-2">
                         <HelpCircle className="w-4 h-4 text-brand-rosegold shrink-0" />
-                        {faq.q}
+                        {faq.question}
                       </h4>
                       <p className="text-xs text-brand-charcoal/70 leading-relaxed font-light pl-6">
-                        {faq.a}
+                        {faq.answer}
                       </p>
                     </div>
                   ))}
