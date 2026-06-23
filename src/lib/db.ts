@@ -423,6 +423,19 @@ const mockReviews = [
   }
 ];
 
+const mockUsers = [
+  {
+    id: 'u1',
+    name: 'Admin User',
+    email: 'admin@gmail.com',
+    password: '$2b$10$Cb.BwdrsX.igtQWvqKBvp.6GRA6dBwHBLxgwih983L0rPzfSRjfO.', // admin123
+    role: 'admin',
+    createdAt: new Date()
+  }
+];
+
+const mockAppointments: any[] = [];
+
 const mockPrisma = new Proxy({}, {
   get: (target, prop) => {
     if (prop === '$connect' || prop === '$disconnect') {
@@ -435,6 +448,12 @@ const mockPrisma = new Proxy({}, {
           if (subProp === 'findUnique' || subProp === 'findFirst') {
             if (prop === 'blogPost' && args?.where?.slug) {
               return mockBlogPosts.find(p => p.slug === args.where.slug) || null;
+            }
+            if (prop === 'service' && args?.where?.slug) {
+              return mockServices.find(s => s.slug === args.where.slug) || null;
+            }
+            if (prop === 'user' && args?.where?.email) {
+              return mockUsers.find(u => u.email === args.where.email) || null;
             }
             return null;
           }
@@ -450,10 +469,11 @@ const mockPrisma = new Proxy({}, {
             if (prop === 'transformation') return mockTransformations;
             if (prop === 'blogPost') return mockBlogPosts;
             if (prop === 'review') return mockReviews;
+            if (prop === 'appointment') return [...mockAppointments].reverse();
           }
           if (subProp === 'create') {
             const data = args?.data || {};
-            return {
+            const createdObj = {
               id: 'mock-id-' + Date.now(),
               ...data,
               // If it has nested creates (like appointment.customer.create), flatten them for the mock
@@ -461,9 +481,34 @@ const mockPrisma = new Proxy({}, {
               staff: data.staff?.create || null,
               createdAt: new Date(),
             };
+            if (prop === 'appointment') {
+              mockAppointments.push(createdObj);
+            }
+            return createdObj;
           }
           if (subProp === 'update') {
+            if (prop === 'appointment') {
+              const id = args?.where?.id;
+              const data = args?.data || {};
+              const idx = mockAppointments.findIndex(a => a.id === id);
+              if (idx !== -1) {
+                mockAppointments[idx] = { ...mockAppointments[idx], ...data };
+                return mockAppointments[idx];
+              }
+            }
             return { id: args?.where?.id || 'mock-id', ...args?.data };
+          }
+          if (subProp === 'delete') {
+            if (prop === 'appointment') {
+              const id = args?.where?.id;
+              const idx = mockAppointments.findIndex(a => a.id === id);
+              if (idx !== -1) {
+                const deleted = mockAppointments[idx];
+                mockAppointments.splice(idx, 1);
+                return deleted;
+              }
+            }
+            return null;
           }
           return [];
         };
