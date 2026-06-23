@@ -5,14 +5,9 @@ import BookingWizard from '@/components/book/BookingWizard';
 export const dynamic = 'force-dynamic';
 
 export default async function BookPage() {
-  const [services, stylists] = await Promise.all([
-    prisma.service.findMany({
-      orderBy: { title: 'asc' },
-    }),
-    prisma.stylist.findMany({
-      orderBy: { name: 'asc' },
-    }),
-  ]);
+  const services = await prisma.service.findMany({
+    orderBy: { title: 'asc' },
+  });
 
   return (
     <Suspense fallback={
@@ -20,7 +15,7 @@ export default async function BookPage() {
         <div className="text-brand-rosegold-dark text-sm animate-pulse">Loading luxury reservation portal...</div>
       </div>
     }>
-      <BookingWizard services={services} stylists={stylists} />
+      <BookingWizard services={services} />
     </Suspense>
   );
 }

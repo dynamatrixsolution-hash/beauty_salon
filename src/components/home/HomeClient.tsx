@@ -87,7 +87,7 @@ export default function HomeClient({
     "Wellness Experience",
     "Korean Glass Skin Facials",
     "Bespoke Hair Artistry",
-    "Royal Bridal Makeovers",
+    "Bridal Makeovers",
     "Luxury Pampering Rituals"
   ];
 
@@ -239,7 +239,7 @@ export default function HomeClient({
         {/* Luxury Vignette Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-brand-charcoal-dark via-transparent to-brand-charcoal-dark/60 z-0" />
         
-        <div className="relative z-10 max-w-5xl mx-auto px-4 text-center flex flex-col items-center gap-6">
+        <div className="relative z-10 w-full max-w-7xl mx-auto px-4 text-center flex flex-col items-center gap-6 sm:px-6 lg:px-8">
 
           {/* Glassmorphic Live Salon Status Badge */}
           <motion.div
@@ -265,18 +265,18 @@ export default function HomeClient({
             initial={{ opacity: 0, y: 25 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="w-full font-serif text-4xl sm:text-6xl lg:text-7xl font-light text-brand-beige leading-tight tracking-tight flex flex-col items-center justify-center gap-2"
+            className="w-full font-serif text-[clamp(2.75rem,6vw,4.75rem)] font-light text-brand-beige leading-[1.08] tracking-normal flex flex-col items-center justify-center gap-3"
           >
-            <span>Luxury Beauty &amp;</span>
-            <div className="h-[50px] sm:h-[80px] relative overflow-hidden w-full flex items-center justify-center">
+            <span className="block">Luxury Beauty &amp;</span>
+            <div className="relative min-h-[6.75rem] w-full overflow-hidden sm:min-h-[7.5rem] md:min-h-[5.25rem]">
               <AnimatePresence mode="wait">
                 <motion.span
                   key={textIndex}
-                  initial={{ y: 35, opacity: 0 }}
+                  initial={{ y: 24, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: -35, opacity: 0 }}
+                  exit={{ y: -24, opacity: 0 }}
                   transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
-                  className="absolute font-normal italic text-rose-gold-gradient block whitespace-nowrap text-[6vw] sm:text-[4.5vw] md:text-5xl lg:text-7xl"
+                  className="absolute inset-0 flex items-center justify-center px-3 text-center font-normal italic tracking-normal text-rose-gold-gradient text-[clamp(1.9rem,4.2vw,3.85rem)] leading-[1.08] text-balance md:whitespace-nowrap"
                 >
                   {ROTATING_TEXTS[textIndex]}
                 </motion.span>
@@ -313,7 +313,8 @@ export default function HomeClient({
         </div>
       </section>
 
-      {/* 2. BRAND INTRODUCTION & PHILOSOPHY */}
+      {/* 2. BRAND INTRODUCTION & PHILOSOPHY - commented out by request */}
+      {false && (
       <section className="py-24 bg-gradient-to-b from-brand-beige to-white relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-center">
@@ -360,6 +361,7 @@ export default function HomeClient({
           </div>
         </div>
       </section>
+      )}
 
       {/* 3. FEATURED SERVICES SECTION */}
       <section className="py-24 bg-white">
@@ -674,9 +676,9 @@ export default function HomeClient({
                     </div>
                   </div>
                   
-                  <Link href="/book" className="w-full">
+                  <Link href="/team" className="w-full">
                     <button className="w-full py-2.5 rounded-lg border border-brand-rosegold/30 hover:border-brand-rosegold hover:bg-brand-pink-light/40 text-brand-charcoal text-xs font-semibold tracking-wider uppercase transition-all duration-300 cursor-pointer">
-                      Book With {stylist.name.split(' ')[0]}
+                      View Profile
                     </button>
                   </Link>
                 </div>

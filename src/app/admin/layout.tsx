@@ -18,6 +18,7 @@ import {
   Loader2,
   Brain,
   Mail,
+  Users,
 } from 'lucide-react';
 import SessionProvider from '@/components/providers/SessionProvider';
 
@@ -27,6 +28,7 @@ const SIDEBAR_ITEMS = [
   { href: '/admin/inquiries', label: 'Inquiries', icon: MessageSquare },
   { href: '/admin/subscribers', label: 'Subscribers', icon: Mail },
   { href: '/admin/services', label: 'Services', icon: Scissors },
+  { href: '/admin/stylists', label: 'Team Members', icon: Users },
   { href: '/admin/products', label: 'Products', icon: Package },
   { href: '/admin/blog', label: 'Blog Posts', icon: FileText },
   { href: '/admin/concierge', label: 'AI Concierge', icon: Brain },

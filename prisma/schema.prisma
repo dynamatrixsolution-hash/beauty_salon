@@ -16,6 +16,13 @@ model User {
   createdAt DateTime @default(now())
 }
 
+model Category {
+  id       String    @id @default(auto()) @map("_id") @db.ObjectId
+  name     String
+  order    Int       @default(0)
+  services Service[]
+}
+
 model Service {
   id               String   @id @default(auto()) @map("_id") @db.ObjectId
   title            String
@@ -23,12 +30,72 @@ model Service {
   description      String
   duration         Int      // in minutes
   pricing          Float    // in NPR
-  category         String   // hair, facial, bridal, nails, spa, skin, eyebrow-lash, massage, etc.
-  benefits         String   // newline-separated benefits
-  faqs             String   // JSON-serialized string of question/answer pairs
+  categoryId       String   @db.ObjectId
+  category         Category @relation(fields: [categoryId], references: [id])
+  isActive         Boolean  @default(true)
   featured         Boolean  @default(false)
   image            String
   beforeAfterImage String?  // Optional before/after image path
+  benefits         String   // newline-separated benefits
+  faqs             String   // JSON-serialized string of question/answer pairs
+  tags             String[]
+  order            Int      @default(0)
+  formId           String?  @db.ObjectId // Relation to FormTemplate
+}
+
+model Package {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  type        String   // BRIDAL, FACIAL, MEMBERSHIP, SEASONAL
+  price       Float
+  description String
+  isActive    Boolean  @default(true)
+  services    String[] @db.ObjectId // Array of Service IDs
+}
+
+model Staff {
+  id             String        @id @default(auto()) @map("_id") @db.ObjectId
+  name           String
+  role           String        @default("Stylist") // Stylist, Therapist, Receptionist, Manager
+  specialization String?
+  experience     String?
+  certifications String?       // comma-separated
+  socials        String?       // comma-separated keys/values
+  phone          String?
+  email          String?
+  image          String?
+  featured       Boolean       @default(false)
+  appointments   Appointment[]
+}
+
+model FormTemplate {
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  name   String
+  fields String // JSON string
+}
+
+model Customer {
+  id           String        @id @default(auto()) @map("_id") @db.ObjectId
+  name         String
+  phone        String
+  email        String?
+  notes        String?
+  appointments Appointment[]
+}
+
+model Appointment {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  dateTime      DateTime
+  status        String   @default("pending") // PENDING, CONFIRMED, IN_PROGRESS, COMPLETED, CANCELLED
+  serviceId     String   @db.ObjectId
+  serviceTitle  String
+  staffId       String?  @db.ObjectId
+  staff         Staff?   @relation(fields: [staffId], references: [id])
+  customerId    String   @db.ObjectId
+  customer      Customer @relation(fields: [customerId], references: [id])
+  formData      String?  // JSON string
+  notes         String?
+  createdAt     DateTime @default(now())
 }
 
 model Product {
@@ -44,21 +111,6 @@ model Product {
   featured       Boolean  @default(false)
 }
 
-model Appointment {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  customerName  String
-  customerEmail String
-  customerPhone String
-  serviceId     String
-  serviceTitle  String
-  stylistId     String
-  stylistName   String
-  dateTime      DateTime
-  status        String   @default("pending") // pending, confirmed, completed, cancelled
-  notes         String?
-  createdAt     DateTime @default(now())
-}
-
 model Inquiry {
   id            String   @id @default(auto()) @map("_id") @db.ObjectId
   customerName  String
@@ -70,17 +122,6 @@ model Inquiry {
   details       String
   status        String   @default("pending") // pending, resolved
   createdAt     DateTime @default(now())
-}
-
-model Stylist {
-  id             String   @id @default(auto()) @map("_id") @db.ObjectId
-  name           String
-  specialization String
-  experience     String
-  certifications String   // comma-separated
-  socials        String   // comma-separated keys/values (e.g. instagram:url,facebook:url)
-  image          String
-  featured       Boolean  @default(false)
 }
 
 model BlogPost {

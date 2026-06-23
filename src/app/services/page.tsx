@@ -5,9 +5,15 @@ import ServicesClient from '@/components/services/ServicesClient';
 export const dynamic = 'force-dynamic';
 
 export default async function ServicesPage() {
-  const services = await prisma.service.findMany({
-    orderBy: { title: 'asc' },
-  });
+  const [services, categories] = await Promise.all([
+    prisma.service.findMany({
+      orderBy: { order: 'asc' },
+      include: { category: true }
+    }),
+    prisma.category.findMany({
+      orderBy: { order: 'asc' },
+    })
+  ]);
 
-  return <ServicesClient initialServices={services} />;
+  return <ServicesClient initialServices={services} categories={categories} />;
 }

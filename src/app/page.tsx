@@ -27,7 +27,7 @@ export default async function HomePage() {
       where: { featured: true },
       take: 3,
     }),
-    prisma.stylist.findMany({
+    prisma.staff.findMany({
       where: { featured: true },
       take: 3,
     }),

@@ -8,11 +8,15 @@ async function main() {
 
   // 1. Clear existing data
   await prisma.user.deleteMany({});
+  await prisma.appointment.deleteMany({});
+  await prisma.customer.deleteMany({});
   await prisma.service.deleteMany({});
   await prisma.product.deleteMany({});
-  await prisma.appointment.deleteMany({});
   await prisma.inquiry.deleteMany({});
-  await prisma.stylist.deleteMany({});
+  await prisma.staff.deleteMany({});
+  await prisma.category.deleteMany({});
+  await prisma.package.deleteMany({});
+  await prisma.formTemplate.deleteMany({});
   await prisma.blogPost.deleteMany({});
   await prisma.review.deleteMany({});
   await prisma.transformation.deleteMany({});
@@ -29,10 +33,11 @@ async function main() {
   });
   console.log('Admin user created:', admin.email);
 
-  // 3. Create Stylists
-  const stylists = [
+  // 3. Create Staff
+  const staffMembers = [
     {
       name: 'Aayusha Shrestha',
+      role: 'Stylist',
       specialization: 'Senior Hair Director & Styling Expert',
       experience: '8 Years',
       certifications: 'L\'Oréal Professionnel Color Certification, Toni&Guy Academy London',
@@ -42,6 +47,7 @@ async function main() {
     },
     {
       name: 'Prajwal Giri',
+      role: 'Stylist',
       specialization: 'Keratin & Creative Colorist Specialist',
       experience: '6 Years',
       certifications: 'Wella Master Color Expert, Olaplex Certified Stylist',
@@ -51,6 +57,7 @@ async function main() {
     },
     {
       name: 'Neha Thapa',
+      role: 'Stylist',
       specialization: 'Bridal Makeup Artist & Glow Specialist',
       experience: '7 Years',
       certifications: 'MAC Cosmetics Pro Academy, Kryolan Bridal Makeup Artistry',
@@ -60,6 +67,7 @@ async function main() {
     },
     {
       name: 'Samikshya Adhikari',
+      role: 'Stylist',
       specialization: 'Advanced Skincare & Nail Aesthetics Specialist',
       experience: '5 Years',
       certifications: 'CIDESCO International Skin Care Diploma, Shills Professional Nail Artistry',
@@ -69,12 +77,35 @@ async function main() {
     },
   ];
 
-  for (const s of stylists) {
-    await prisma.stylist.create({ data: s });
+  for (const s of staffMembers) {
+    await prisma.staff.create({ data: s });
   }
-  console.log('Stylists seeded.');
+  console.log('Staff seeded.');
 
-  // 4. Create Services
+  // 4. Create Categories
+  const categoryMap: Record<string, string> = {};
+  const categoriesList = [
+    { key: 'hair', name: 'Hair Services', order: 0 },
+    { key: 'facial', name: 'Facial & Skin Care', order: 1 },
+    { key: 'bridal', name: 'Makeup Services', order: 2 },
+    { key: 'nails', name: 'Nail Services', order: 3 },
+    { key: 'spa', name: 'Body Care', order: 4 },
+    { key: 'skin', name: 'Skin Treatment', order: 5 },
+    { key: 'eyebrow-lash', name: 'Eyebrow & Lash Services', order: 6 },
+  ];
+
+  for (const cat of categoriesList) {
+    const created = await prisma.category.create({
+      data: {
+        name: cat.name,
+        order: cat.order,
+      }
+    });
+    categoryMap[cat.key] = created.id;
+  }
+  console.log('Categories seeded.');
+
+  // 5. Create Services
   const services = [
     {
       title: 'Premium Hair Styling',
@@ -82,7 +113,7 @@ async function main() {
       description: 'Get the perfect cut, blow-dry, or customized hair styling designed to enhance your natural features and match your unique lifestyle. Includes luxury wash and scalp massage.',
       duration: 45,
       pricing: 1500,
-      category: 'hair',
+      categoryKey: 'hair',
       benefits: 'Personalized styling consultation\nPremium organic shampoo & conditioning\nStress-relieving scalp massage\nLong-lasting professional blow-dry finish',
       faqs: JSON.stringify([
         { q: 'Does this service include a hair wash?', a: 'Yes, all our hair styling services include a luxurious wash, deep conditioning, and a relaxing scalp massage.' },
@@ -97,7 +128,7 @@ async function main() {
       description: 'Transform your hair with our signature hand-painted balayage, highlights, or full color changes. We use ultra-conditioning, low-ammonia formulas for rich, radiant color.',
       duration: 180,
       pricing: 6500,
-      category: 'hair',
+      categoryKey: 'hair',
       benefits: 'Custom tone-matching assessment\nMinimal hair-damage protective bond builders used\nRich, multi-dimensional color reflection\nIncludes post-color hydration treatment',
       faqs: JSON.stringify([
         { q: 'What is the difference between highlights and balayage?', a: 'Balayage is a hand-painted technique that creates a soft, natural, sun-kissed gradient, whereas traditional highlights use foils from the roots down.' },
@@ -112,7 +143,7 @@ async function main() {
       description: 'Revitalize dull skin with our signature Korean-inspired hydrating facial. Combines ultrasonic exfoliation, vacuum extraction, and antioxidant serum infusion for immediate glass-skin results.',
       duration: 60,
       pricing: 3500,
-      category: 'facial',
+      categoryKey: 'facial',
       benefits: 'Deep pore extraction and cleansing\nIntense hyaluronic moisture infusion\nImproves skin elasticity and texture\nIncludes facial lymphatic drainage massage',
       faqs: JSON.stringify([
         { q: 'Is there any downtime after the Hydra-Glow facial?', a: 'None! You will walk out with an immediate radiant glow. We recommend avoiding direct sunlight for 24 hours and wearing SPF.' },
@@ -127,7 +158,7 @@ async function main() {
       description: 'Look breathtaking on your special day. Our luxury bridal package offers HD airbrush makeup, hair styling, veil setting, and jewelry placement for a flawless, photo-ready wedding look.',
       duration: 150,
       pricing: 15000,
-      category: 'bridal',
+      categoryKey: 'bridal',
       benefits: 'Custom consultation and trial session included\nWaterproof, 18-hour long-wear premium cosmetics\nFlawless HD airbrush finish\nVeil, jewelry drape, and floral styling assistance',
       faqs: JSON.stringify([
         { q: 'Do you offer on-site wedding day services?', a: 'Yes, our bridal makeup specialists can travel to your wedding venue or home for an additional styling fee.' },
@@ -142,7 +173,7 @@ async function main() {
       description: 'Indulge in a premium manicure featuring shape styling, cuticle care, and custom hand-painted gel nail art using non-toxic, long-lasting Korean gel polishes.',
       duration: 60,
       pricing: 2000,
-      category: 'nails',
+      categoryKey: 'nails',
       benefits: 'Nail strengthening base coat treatment\nCustom hand-painted art and embellishments\nChip-free wear for 3 to 4 weeks\nMoisturizing hand cream massage included',
       faqs: JSON.stringify([
         { q: 'How do I remove gel nails safely?', a: 'We highly recommend coming to the studio for professional gel removal to avoid stripping or damaging your natural nail beds.' },
@@ -157,7 +188,7 @@ async function main() {
       description: 'Melt away stress and muscle tension. Our full-body massage uses organic warm oils and customized pressure to restore peace to your mind, body, and spirit.',
       duration: 90,
       pricing: 4000,
-      category: 'spa',
+      categoryKey: 'spa',
       benefits: 'Relieves physical fatigue & muscle soreness\nPromotes blood circulation & flexibility\nInfused with calming lavender and eucalyptus oils\nIncludes hot towel foot compress',
       faqs: JSON.stringify([
         { q: 'Can I choose the pressure of my massage?', a: 'Yes. Our therapist will ask your preference (soft, medium, or deep tissue) before beginning.' },
@@ -172,7 +203,7 @@ async function main() {
       description: 'Target skin concerns with our dermatologist-approved clinical treatments. Includes chemical peels, LED light therapy, and barrier repairing ampoules to heal and refine skin texture.',
       duration: 75,
       pricing: 4500,
-      category: 'skin',
+      categoryKey: 'skin',
       benefits: 'Reduces active acne outbreaks\nFades hyperpigmentation and acne scars\nBoosts collagen production for firmer skin\nCustom chemical peel tailored to your skin type',
       faqs: JSON.stringify([
         { q: 'Is LED light therapy safe?', a: 'Yes, it is a non-invasive, UV-free treatment that targets acne-causing bacteria and reduces inflammation safely.' },
@@ -187,7 +218,7 @@ async function main() {
       description: 'Wake up with effortlessly groomed brows and lifted lashes. Brow lamination sets brow hairs into a full, neat shape, while the lash lift curls your natural lashes for a wide-eyed look.',
       duration: 75,
       pricing: 3000,
-      category: 'eyebrow-lash',
+      categoryKey: 'eyebrow-lash',
       benefits: 'Saves time on daily makeup routine\nLashes appear longer and fuller naturally\nBrows look groomed, uniform and thick\nIncludes lash and brow deep conditioning tint',
       faqs: JSON.stringify([
         { q: 'How long does a lash lift last?', a: 'A lash lift and tint generally lasts 6 to 8 weeks, depending on your natural eyelash growth cycle.' },
@@ -202,7 +233,7 @@ async function main() {
       description: 'Eliminate frizz and restore brilliant shine. Our advanced Keratin Infusion treatment seals protein into the hair shaft, leaving it sleek, straight, and manageable for months.',
       duration: 150,
       pricing: 7500,
-      category: 'hair',
+      categoryKey: 'hair',
       benefits: 'Eliminates 90% of hair frizz\nCuts styling and blow-drying time in half\nStrengthens damaged hair fibers\nSilky, smooth finish lasting up to 4 months',
       faqs: JSON.stringify([
         { q: 'Can I wash my hair immediately after the treatment?', a: 'We recommend waiting 72 hours before washing your hair or using hair ties to let the keratin set.' },
@@ -217,10 +248,10 @@ async function main() {
       description: 'Exfoliate and polish your body with our signature pink Himalayan salt and rose petal scrub. Completed with a warm botanical bath and deep hydration body butter application.',
       duration: 90,
       pricing: 5000,
-      category: 'spa',
+      categoryKey: 'spa',
       benefits: 'Removes dead skin cells and detoxifies\nLeaves skin incredibly soft, smooth, and nourished\nCalms the nervous system through sensory aromas\nIncludes moisturizing rosewater body wrap',
       faqs: JSON.stringify([
-        { q: 'Is the body scrub abrasive?', a: 'Our Himalayan salt is finely milled and blended with organic botanical oils, offering gentle yet effective exfoliation.' },
+        { q: 'Is the body scrub abrasive?', a: 'Our Himalayan salt is blended with organic botanical oils, offering gentle yet effective exfoliation.' },
         { q: 'Can I shave before the body scrub?', a: 'We recommend not shaving for at least 24 hours prior to the treatment to prevent salt from stinging sensitive skin.' }
       ]),
       featured: false,
@@ -228,12 +259,23 @@ async function main() {
     }
   ];
 
+  let serviceOrder = 0;
   for (const s of services) {
-    await prisma.service.create({ data: s });
+    const { categoryKey, ...rest } = s;
+    const catId = categoryMap[categoryKey] || categoryMap['hair'];
+    await prisma.service.create({
+      data: {
+        ...rest,
+        categoryId: catId,
+        isActive: true,
+        tags: [],
+        order: serviceOrder++,
+      },
+    });
   }
   console.log('Services seeded.');
 
-  // 5. Create Products
+  // 6. Create Products
   const products = [
     {
       title: 'Glass Skin Radiance Serum',
@@ -297,7 +339,7 @@ async function main() {
   }
   console.log('Products seeded.');
 
-  // 6. Create Reviews
+  // 7. Create Reviews
   const reviews = [
     {
       customerName: 'Prerna Thapa',
@@ -330,7 +372,7 @@ async function main() {
   }
   console.log('Reviews seeded.');
 
-  // 7. Create Blog Posts
+  // 8. Create Blog Posts
   const blogPosts = [
     {
       title: '5 Steps to Achieve the Korean Glass Skin Look At Home',
@@ -414,7 +456,7 @@ Since the keratin treatment makes your hair naturally straight and quick to dry,
   }
   console.log('Blog posts seeded.');
 
-  // 8. Create Transformations
+  // 9. Create Transformations
   const transformations = [
     {
       title: 'Korean Hydra-Glow Facial',

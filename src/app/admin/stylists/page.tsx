@@ -344,7 +344,7 @@ export default function AdminStylistsPage() {
                 {/* Certifications */}
                 <div>
                   <label className="block text-xs font-medium text-white/50 uppercase tracking-wider mb-2">
-                    Certifications (comma separated) *
+                    Certifications (comma separated)
                   </label>
                   <input
                     type="text"
@@ -352,7 +352,6 @@ export default function AdminStylistsPage() {
                     onChange={(e) =>
                       setForm({ ...form, certifications: e.target.value })
                     }
-                    required
                     className="w-full bg-white/[0.05] border border-white/[0.08] text-white px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:border-brand-rosegold/50 transition-colors"
                     placeholder="e.g. CIDESCO Diploma, Korean Skin Academy Cert"
                   />
@@ -393,7 +392,7 @@ export default function AdminStylistsPage() {
                     className="w-4 h-4 rounded border-white/20 bg-white/5 text-brand-rosegold focus:ring-brand-rosegold cursor-pointer"
                   />
                   <span className="text-sm text-white/60">
-                    Featured on homepage team slider
+                    Featured on homepage team slider. All team members appear on the public Team page.
                   </span>
                 </label>
 

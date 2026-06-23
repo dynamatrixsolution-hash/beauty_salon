@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Mail, Phone, MapPin, Clock, Sparkles, Send, Check } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 
@@ -42,12 +43,16 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
           {/* Brand Info */}
           <div className="flex flex-col gap-4">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 flex items-center justify-center rounded-full bg-gradient-to-r from-brand-pink-accent to-brand-rosegold text-brand-charcoal-dark font-serif text-lg font-bold">
-                G
-              </div>
+            <Link href="/" className="flex items-center gap-3">
+              <Image
+                src="/salonlogo.png"
+                alt="Dynamatrix Salon logo"
+                width={48}
+                height={48}
+                className="h-11 w-11 rounded-md object-cover ring-1 ring-brand-beige/15"
+              />
               <span className="font-serif text-xl font-semibold tracking-wider text-white">
-                GLOW &amp; GRACE
+                DYNAMATRIX SALON
               </span>
             </Link>
             <p className="text-sm text-brand-beige/70 leading-relaxed font-sans">
@@ -77,6 +82,9 @@ export default function Footer() {
             <ul className="space-y-3.5 text-sm font-sans text-brand-beige/70">
               <li>
                 <Link href="/services" className="hover:text-brand-rosegold transition-colors">Salon Services</Link>
+              </li>
+              <li>
+                <Link href="/team" className="hover:text-brand-rosegold transition-colors">Our Team</Link>
               </li>
               <li>
                 <Link href="/products" className="hover:text-brand-rosegold transition-colors">Product Boutique</Link>

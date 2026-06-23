@@ -7,21 +7,17 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 interface ServicesClientProps {
   initialServices: any[];
+  categories: any[];
 }
 
-const CATEGORIES = [
-  { id: 'all', label: 'All Services' },
-  { id: 'hair', label: 'Hair Care' },
-  { id: 'facial', label: 'Facials & Glow' },
-  { id: 'bridal', label: 'Bridal Packages' },
-  { id: 'nails', label: 'Nail Art' },
-  { id: 'spa', label: 'Spa Therapies' },
-  { id: 'skin', label: 'Clinical Skin' },
-];
-
-export default function ServicesClient({ initialServices }: ServicesClientProps) {
+export default function ServicesClient({ initialServices, categories }: ServicesClientProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
+
+  const filterCategories = [
+    { id: 'all', name: 'All Services' },
+    ...categories
+  ];
 
   const filteredServices = initialServices.filter((service) => {
     const matchesSearch =
@@ -29,7 +25,7 @@ export default function ServicesClient({ initialServices }: ServicesClientProps)
       service.description.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesCategory =
-      activeCategory === 'all' || service.category === activeCategory;
+      activeCategory === 'all' || service.categoryId === activeCategory;
 
     return matchesSearch && matchesCategory;
   });
@@ -51,7 +47,7 @@ export default function ServicesClient({ initialServices }: ServicesClientProps)
         <div className="flex flex-col md:flex-row gap-6 justify-between items-center bg-white/40 p-4 rounded-2xl glass-card border border-brand-pink-accent/20">
           {/* Categories */}
           <div className="flex flex-wrap gap-2 w-full md:w-auto">
-            {CATEGORIES.map((cat) => (
+            {filterCategories.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
@@ -61,7 +57,7 @@ export default function ServicesClient({ initialServices }: ServicesClientProps)
                     : 'bg-white/50 text-brand-charcoal hover:bg-brand-pink-medium/30'
                 }`}
               >
-                {cat.label}
+                {cat.name}
               </button>
             ))}
           </div>
@@ -100,7 +96,7 @@ export default function ServicesClient({ initialServices }: ServicesClientProps)
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                     <div className="absolute top-4 left-4 bg-brand-beige/95 backdrop-blur-sm text-brand-charcoal-dark text-[9px] font-bold tracking-wider uppercase px-3 py-1.5 rounded-full">
-                      {service.category}
+                      {service.category?.name}
                     </div>
                   </div>
                   
