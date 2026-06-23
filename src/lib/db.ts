@@ -387,7 +387,7 @@ const mockReviews = [
     rating: 5,
     serviceType: 'Signature Glass Skin Treatment',
     text: 'I have visited luxury spas all over the world, but this studio offers an unmatched experience right here in Kathmandu. Dr. Maya completely transformed my skin texture. The glass skin facial is worth every penny.',
-    image: null,
+    image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200&auto=format&fit=crop',
     status: 'approved',
     createdAt: new Date()
   },
@@ -397,7 +397,7 @@ const mockReviews = [
     rating: 5,
     serviceType: 'Luxury Bridal Elegance',
     text: 'Nina and her team made me feel like an absolute queen on my wedding day. My makeup stayed flawless for 14 hours without feeling heavy. She executed my vision perfectly with such grace and professionalism.',
-    image: null,
+    image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop',
     status: 'approved',
     createdAt: new Date()
   },
@@ -407,7 +407,7 @@ const mockReviews = [
     rating: 5,
     serviceType: 'Balayage & Keratin Revival',
     text: 'Aisha is a true artist when it comes to color. She took my brassy, damaged hair and gave me the most stunning cool-toned balayage. The Keratin treatment left it silky smooth. I will never go anywhere else.',
-    image: null,
+    image: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?q=80&w=200&auto=format&fit=crop',
     status: 'approved',
     createdAt: new Date()
   },
@@ -417,7 +417,7 @@ const mockReviews = [
     rating: 5,
     serviceType: 'Deep Tissue Massage',
     text: 'As a surgeon, I carry an immense amount of tension in my shoulders. Rita\'s deep tissue massage was exactly what I needed. The ambiance of the studio is incredibly serene, luxurious, and calming.',
-    image: null,
+    image: 'https://images.unsplash.com/photo-1551836022-d5d88e9218df?q=80&w=200&auto=format&fit=crop',
     status: 'approved',
     createdAt: new Date()
   }
