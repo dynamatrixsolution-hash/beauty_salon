@@ -214,7 +214,7 @@ export default function BookingWizard({ services }: BookingWizardProps) {
                         <div className="flex gap-3 text-[10px] text-brand-charcoal/50 font-medium">
                           <span>{s.duration} Mins</span>
                           <span>•</span>
-                          <span className="capitalize">{s.category}</span>
+                          <span className="capitalize">{s.category?.name}</span>
                         </div>
                       </div>
                       <div className="flex items-center gap-3 shrink-0">

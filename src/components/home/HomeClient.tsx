@@ -391,7 +391,7 @@ export default function HomeClient({
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                   <div className="absolute top-4 left-4 bg-brand-beige/90 backdrop-blur-sm text-brand-charcoal-dark text-[10px] font-semibold tracking-wider uppercase px-3 py-1.5 rounded-full">
-                    {service.category}
+                    {service.category?.name}
                   </div>
                 </div>
                 <div className="p-6 flex flex-col flex-grow justify-between gap-4">
