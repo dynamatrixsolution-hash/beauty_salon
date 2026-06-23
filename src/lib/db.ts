@@ -380,6 +380,49 @@ const mockBlogPosts = [
   }
 ];
 
+const mockReviews = [
+  {
+    id: 'r1',
+    customerName: 'Anjali Shrestha',
+    rating: 5,
+    serviceType: 'Signature Glass Skin Treatment',
+    text: 'I have visited luxury spas all over the world, but this studio offers an unmatched experience right here in Kathmandu. Dr. Maya completely transformed my skin texture. The glass skin facial is worth every penny.',
+    image: null,
+    status: 'approved',
+    createdAt: new Date()
+  },
+  {
+    id: 'r2',
+    customerName: 'Priya Karki',
+    rating: 5,
+    serviceType: 'Luxury Bridal Elegance',
+    text: 'Nina and her team made me feel like an absolute queen on my wedding day. My makeup stayed flawless for 14 hours without feeling heavy. She executed my vision perfectly with such grace and professionalism.',
+    image: null,
+    status: 'approved',
+    createdAt: new Date()
+  },
+  {
+    id: 'r3',
+    customerName: 'Smriti M.',
+    rating: 5,
+    serviceType: 'Balayage & Keratin Revival',
+    text: 'Aisha is a true artist when it comes to color. She took my brassy, damaged hair and gave me the most stunning cool-toned balayage. The Keratin treatment left it silky smooth. I will never go anywhere else.',
+    image: null,
+    status: 'approved',
+    createdAt: new Date()
+  },
+  {
+    id: 'r4',
+    customerName: 'Dr. Rina T.',
+    rating: 5,
+    serviceType: 'Deep Tissue Massage',
+    text: 'As a surgeon, I carry an immense amount of tension in my shoulders. Rita\'s deep tissue massage was exactly what I needed. The ambiance of the studio is incredibly serene, luxurious, and calming.',
+    image: null,
+    status: 'approved',
+    createdAt: new Date()
+  }
+];
+
 const mockPrisma = new Proxy({}, {
   get: (target, prop) => {
     if (prop === '$connect' || prop === '$disconnect') {
@@ -406,6 +449,7 @@ const mockPrisma = new Proxy({}, {
             if (prop === 'product') return mockProducts;
             if (prop === 'transformation') return mockTransformations;
             if (prop === 'blogPost') return mockBlogPosts;
+            if (prop === 'review') return mockReviews;
           }
           if (subProp === 'create') {
             const data = args?.data || {};
